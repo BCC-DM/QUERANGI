@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>CM Validation · 쿼랑이</title>
+<link rel="stylesheet" href="css/site.css">
+<style>
+  main{max-width:1180px;margin:0 auto;padding:0 24px}
+
+  /* 소개 */
+  .hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:56px;align-items:center;padding:64px 0 56px}
+  .hero h1{font-size:40px;line-height:1.25;letter-spacing:-.02em;margin:0 0 18px;font-weight:800}
+  .hero p{font-size:17px;color:var(--sub);margin:0 0 28px;max-width:30em}
+  .actions{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{display:inline-block;text-decoration:none;font-weight:600;border-radius:9px;padding:12px 22px;font-size:15px}
+  .btn.primary{background:var(--brand);color:#fff}
+  .btn.primary:hover{background:var(--brand-ink)}
+  .btn.plain{color:var(--ink);background:var(--sheet);border:1px solid var(--field)}
+  .btn.plain:hover{border-color:var(--sub)}
+  .safe{margin-top:22px;font-size:13.5px;color:var(--sub);display:flex;gap:8px;align-items:center}
+  .safe svg{flex:none}
+
+  /* 소개 오른쪽: 실제 검사처럼 보이는 CRF 행 */
+  .sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:18px 18px 8px;box-shadow:0 1px 0 var(--rule),0 18px 40px -24px rgba(29,36,51,.35)}
+  .sheet-top{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--sub);margin:0 2px 12px}
+  .sheet-top b{color:var(--ink);font-size:14px}
+  .crf{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:14px}
+  .crf th{font-size:12px;color:var(--sub);font-weight:600;text-align:left;padding:0 8px 2px}
+  .crf td{position:relative;padding:9px 8px;border:1px solid var(--field);border-left-width:0;background:#fff;white-space:nowrap}
+  .crf td:first-child{border-left-width:1px;border-radius:6px 0 0 6px;white-space:normal}
+  .crf td:last-child{border-radius:0 6px 6px 0}
+  .crf td.hit-red{background:var(--red-soft);border-color:#f1b9b3}
+  .crf td.hit-amber{background:var(--amber-soft);border-color:#f0c9a2}
+  .crf tr.row td{transition:background-color .4s,border-color .4s}
+  .crf tr.noterow td{border:0;padding:0 0 8px;background:none;white-space:normal}
+  .note{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;padding:10px 12px;border-radius:8px}
+  .note b{font-size:12.5px;white-space:nowrap}
+  .note.red{background:var(--red-soft);color:#8f251d}
+  .note.amber{background:var(--amber-soft);color:#7f3f0b}
+  .note.green{background:var(--green-soft);color:#17663a}
+  .note .why{display:block;color:var(--sub);font-size:12.5px;margin-top:2px}
+
+  /* 한 번만 재생되는 검사 장면: 행이 차례로 검사되고 주석이 붙음 */
+  @keyframes markRed{from{background:#fff;border-color:var(--field)}}
+  @keyframes markAmber{from{background:#fff;border-color:var(--field)}}
+  @keyframes noteIn{from{opacity:0;transform:translateY(-4px)}}
+  .play .hit-red{animation:markRed .5s ease-out both .6s}
+  .play .n1{animation:noteIn .4s ease-out both .9s}
+  .play .hit-amber{animation:markAmber .5s ease-out both 1.5s}
+  .play .n2{animation:noteIn .4s ease-out both 1.8s}
+  .play .n3{animation:noteIn .4s ease-out both 2.5s}
+
+  /* 공통 구역 */
+  section.block{padding:44px 0;border-top:1px solid var(--rule)}
+  section.block h2{font-size:24px;letter-spacing:-.01em;margin:0 0 6px}
+  section.block > p.lead{color:var(--sub);margin:0 0 26px;max-width:42em}
+
+  /* 사용 방법: 실제 순서가 있는 3단계 */
+  .steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:0;counter-reset:s;position:relative}
+  .steps li{counter-increment:s;padding:0 28px 0 0;position:relative}
+  .steps li::before{content:counter(s);display:flex;width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;align-items:center;justify-content:center;margin-bottom:14px;position:relative;z-index:1}
+  .steps li:not(:last-child)::after{content:"";position:absolute;top:17px;left:34px;right:0;height:2px;background:var(--field)}
+  .steps h3{font-size:17px;margin:0 0 6px}
+  .steps p{margin:0;color:var(--sub);font-size:14.5px}
+  .steps .who{display:inline-block;margin-top:10px;font-size:12.5px;color:var(--sub);background:var(--gray-soft);border-radius:6px;padding:1px 8px}
+
+  /* 도구 목록 */
+  .tools{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+  .tool{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:18px;align-items:center;padding:20px 22px;border-top:1px solid var(--rule);text-decoration:none;color:inherit}
+  .tool:first-child{border-top:0}
+  a.tool:hover{background:#f7fbf6}
+  a.tool:hover .go{background:var(--brand);color:#fff}
+  .tool .ic{width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--brand-soft)}
+  .tool.soon .ic{background:var(--gray-soft)}
+  .tool h3{font-size:17px;margin:0 0 3px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .tool p{margin:0;color:var(--sub);font-size:14.5px}
+  .chip{font-size:12px;font-weight:600;border-radius:6px;padding:1px 8px}
+  .chip.ok{background:var(--green-soft);color:var(--green)}
+  .chip.who{background:var(--gray-soft);color:var(--sub)}
+  .chip.soon{background:var(--gray-soft);color:var(--gray)}
+  .go{font-size:14px;font-weight:600;color:var(--brand);background:var(--brand-soft);border-radius:8px;padding:8px 14px;white-space:nowrap}
+  .tool.soon .go{color:var(--gray);background:none;padding:8px 0}
+
+  /* 판정 설명 */
+  .verdicts{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--sheet);border:1px solid var(--rule);border-radius:12px}
+  .verdicts div{padding:18px 20px;border-left:1px solid var(--rule)}
+  .verdicts div:first-child{border-left:0}
+  .verdicts dt{font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .verdicts dt i{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .verdicts dd{margin:0;color:var(--sub);font-size:14px}
+  .verdicts .ex{display:block;margin-top:8px;color:var(--ink);font-size:13.5px}
+  .disclaim{margin-top:18px;font-size:14px;color:var(--sub)}
+
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr;gap:36px;padding:40px 0}
+    .hero h1{font-size:32px}
+    .steps{grid-template-columns:1fr;gap:22px}
+    .steps li{padding:0 0 0 50px}
+    .steps li::before{position:absolute;left:0;top:0;margin:0}
+    .steps li:not(:last-child)::after{top:34px;bottom:-22px;left:16px;right:auto;width:2px;height:auto}
+    .verdicts{grid-template-columns:1fr 1fr}
+    .verdicts div:nth-child(3){border-left:0}
+    .verdicts div:nth-child(n+3){border-top:1px solid var(--rule)}
+  }
+  @media (max-width:560px){
+    main{padding:0 16px}
+    .hero h1{font-size:28px}
+    .crf{font-size:13px}
+    .crf .opt{display:none}
+    .tool{grid-template-columns:44px minmax(0,1fr);gap:14px;padding:16px}
+    .tool .ic{width:44px;height:44px}
+    .tool .go{grid-column:2;justify-self:start}
+    .verdicts{grid-template-columns:1fr}
+    .verdicts div{border-left:0;border-top:1px solid var(--rule)}
+    .verdicts div:first-child{border-top:0}
+  }
+</style>
+</head>
+<body>
+<header class="site-head"><div class="in"><a class="brand" href="index.html" aria-label="쿼랑이 처음 화면"><svg width="38" height="38" viewBox="18 22 164 140" role="img" aria-label="쿼랑이" xmlns="http://www.w3.org/2000/svg"><defs>
+  <radialGradient id="hfur" cx="40%" cy="30%" r="78%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#f4f6f9"/><stop offset=".85" stop-color="#dfe5ee"/><stop offset="1" stop-color="#c3ccda"/>
+  </radialGradient>
+  <radialGradient id="hbody" cx="38%" cy="25%" r="80%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#eef1f6"/><stop offset="1" stop-color="#b9c3d2"/>
+  </radialGradient>
+  <radialGradient id="hear" cx="40%" cy="35%" r="70%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cbd3df"/>
+  </radialGradient>
+  <radialGradient id="hinner" cx="50%" cy="38%" r="62%">
+    <stop offset="0" stop-color="#ffd9d2"/><stop offset=".7" stop-color="#f4aaa1"/><stop offset="1" stop-color="#e48e86"/>
+  </radialGradient>
+  <linearGradient id="hstripe" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#4b5874"/><stop offset="1" stop-color="#262f45"/>
+  </linearGradient>
+  <radialGradient id="hiris" cx="50%" cy="72%" r="70%">
+    <stop offset="0" stop-color="#7fb2ff"/><stop offset=".45" stop-color="#3561b8"/><stop offset="1" stop-color="#16244d"/>
+  </radialGradient>
+  <radialGradient id="hmuzzle" cx="50%" cy="30%" r="72%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dbe1ea"/>
+  </radialGradient>
+  <radialGradient id="hnose" cx="42%" cy="28%" r="72%">
+    <stop offset="0" stop-color="#ffbdb2"/><stop offset="1" stop-color="#d4574f"/>
+  </radialGradient>
+  <radialGradient id="hblush" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#ff9b94" stop-opacity=".8"/><stop offset="1" stop-color="#ff9b94" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="hscarf" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#9fd067"/><stop offset=".5" stop-color="#4fa257"/><stop offset="1" stop-color="#007049"/>
+  </linearGradient>
+  <linearGradient id="hboard" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#2f9a68"/><stop offset="1" stop-color="#00593a"/>
+  </linearGradient>
+  <linearGradient id="hring" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#b3dc7e"/><stop offset=".45" stop-color="#80ba4c"/><stop offset="1" stop-color="#006a45"/>
+  </linearGradient>
+  <radialGradient id="hlens" cx="35%" cy="30%" r="80%">
+    <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".5" stop-color="#e3f3e2" stop-opacity=".7"/><stop offset="1" stop-color="#9fcfae" stop-opacity=".85"/>
+  </radialGradient>
+  <linearGradient id="hhandle" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#27342e"/><stop offset=".5" stop-color="#55665d"/><stop offset="1" stop-color="#1c2622"/>
+  </linearGradient>
+  <filter id="hsoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="hsoft2" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4"/></filter>
+</defs>
+  <g>
+    <circle cx="55" cy="50" r="22" fill="url(#hear)"/>
+    <circle cx="145" cy="50" r="22" fill="url(#hear)"/>
+  </g>
+  <ellipse cx="56" cy="53" rx="11.5" ry="11" fill="url(#hinner)"/>
+  <ellipse cx="144" cy="53" rx="11.5" ry="11" fill="url(#hinner)"/>
+  <path d="M50 45c3-2 7-2 10 0M140 45c3-2 7-2 10 0" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".9"/>
+  <path d="M100 38C140 38 167 61 170 96L179 103L168 108L177 116L163 122C154 146 128 158 100 158C72 158 46 146 37 122L23 116L32 108L21 103L30 96C33 61 60 38 100 38Z" fill="url(#hfur)"/>
+  <ellipse cx="82" cy="56" rx="32" ry="12" fill="#fff" opacity=".9" filter="url(#hsoft2)"/>
+  <g fill="url(#hstripe)">
+    <path d="M100 40c-4.4 0-6.6 3.2-6.4 7.4l1.8 15.4c.5 3 8.7 3 9.2 0l1.8-15.4c.2-4.2-2-7.4-6.4-7.4Z"/>
+    <path d="M77.5 45.5c-3.3 1.1-4.4 4.4-3.1 7.4l6.3 11.6c1.5 2.4 7.1.4 6.5-2.4L85 50c-.8-3.8-4.3-5.4-7.5-4.5Z"/>
+    <path d="M122.5 45.5c3.3 1.1 4.4 4.4 3.1 7.4l-6.3 11.6c-1.5 2.4-7.1.4-6.5-2.4L115 50c.8-3.8 4.3-5.4 7.5-4.5Z"/>
+    <path d="M33 87c-1 3.3 1.2 6.4 4.4 6.6l16 1c2.8.1 3.3-4.8.6-5.8l-15-5.3c-3.2-1.1-5.4 1-6 3.5Z"/>
+    <path d="M35 107.5c0 3.2 2.8 5.4 5.8 4.5l12.8-3.9c2.7-.8 1.7-5.3-1.1-5.3l-13.2.3c-2.6.1-4.3 1.8-4.3 4.4Z"/>
+    <path d="M167 87c1 3.3-1.2 6.4-4.4 6.6l-16 1c-2.8.1-3.3-4.8-.6-5.8l15-5.3c3.2-1.1 5.4 1 6 3.5Z"/>
+    <path d="M165 107.5c0 3.2-2.8 5.4-5.8 4.5l-12.8-3.9c-2.7-.8-1.7-5.3 1.1-5.3l13.2.3c2.6.1 4.3 1.8 4.3 4.4Z"/>
+  </g>
+  <ellipse cx="59" cy="124" rx="16" ry="10.5" fill="url(#hblush)"/>
+  <ellipse cx="141" cy="124" rx="16" ry="10.5" fill="url(#hblush)"/>
+  <g class="eyes">
+    <ellipse cx="78" cy="101" rx="12.5" ry="14.5" fill="#101a35"/>
+    <ellipse cx="122" cy="101" rx="12.5" ry="14.5" fill="#101a35"/>
+    <ellipse cx="78" cy="102.5" rx="10.6" ry="12.4" fill="url(#hiris)"/>
+    <ellipse cx="122" cy="102.5" rx="10.6" ry="12.4" fill="url(#hiris)"/>
+    <ellipse cx="78" cy="100" rx="5.6" ry="6.6" fill="#0b1229"/>
+    <ellipse cx="122" cy="100" rx="5.6" ry="6.6" fill="#0b1229"/>
+    <ellipse cx="83" cy="94.5" rx="4.8" ry="5.4" fill="#fff"/>
+    <ellipse cx="127" cy="94.5" rx="4.8" ry="5.4" fill="#fff"/>
+    <circle cx="73.5" cy="107.5" r="2.2" fill="#fff" opacity=".9"/>
+    <circle cx="117.5" cy="107.5" r="2.2" fill="#fff" opacity=".9"/>
+    <path d="M71 110.5c4 3 10 3 14 0M115 110.5c4 3 10 3 14 0" stroke="#a9ccff" stroke-width="1.6" stroke-linecap="round" fill="none" opacity=".7"/>
+  </g>
+  <ellipse cx="100" cy="127.5" rx="27" ry="18" fill="url(#hmuzzle)"/>
+  <g stroke="#9aa6b8" stroke-width="1.3" stroke-linecap="round" opacity=".75">
+    <path d="M76 126l-19-3M76 131l-19 1.5M124 126l19-3M124 131l19 1.5"/>
+  </g>
+  <g fill="#b6bfcc"><circle cx="86" cy="128" r="1.1"/><circle cx="83" cy="132" r="1.1"/><circle cx="114" cy="128" r="1.1"/><circle cx="117" cy="132" r="1.1"/></g>
+  <path d="M91.8 117.2h16.4c2.3 0 3.4 2.5 1.9 4.2l-8.1 7.8c-1.1 1-2.9 1-4 0l-8.1-7.8c-1.5-1.7-.4-4.2 1.9-4.2Z" fill="url(#hnose)"/>
+  <ellipse cx="97" cy="119.8" rx="3.8" ry="1.7" fill="#fff" opacity=".75"/>
+  <path d="M100 129v4.4c0 3.8-3 6-6.3 6-3 0-5.2-2-5.7-4.5M100 133.4c0 3.8 3 6 6.3 6 3 0 5.2-2 5.7-4.5" fill="none" stroke="#3a3f4d" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M96 140.5c1.4 3.2 6.6 3.2 8 0" fill="#f08c86"/>
+</svg><svg class="wordmark" width="65.1" height="24" viewBox="14 -1654 5044 1860" aria-hidden="true"><path d="M1118 -1506H180V-1276H832C831 -1236 829 -1193 828 -1148L130 -1120L166 -882L806 -934C798 -875 788 -814 776 -748C510 -733 246 -731 24 -728L56 -502C184 -502 323 -503 468 -508V116H756V-522C920 -534 1086 -552 1248 -580L1226 -786C1173 -779 1119 -773 1066 -768C1116 -1042 1116 -1231 1118 -1382ZM1634 -1642H1344V-438H988V-212H1344V190H1634Z M3239.04 -1642H2951.04V-546H3239.04V-988H3479.04V-1224H3239.04ZM2685.04 -1534H1837.04V-1310H2403.04V-1184H1839.04V-606H1997.04C2379.04 -606 2613.04 -616 2863.04 -666L2833.04 -892C2616.04 -853 2420.04 -843 2127.04 -840V-972H2685.04ZM2629.04 -516C2237.04 -516 1993.04 -380 1993.04 -158C1993.04 62 2237.04 190 2629.04 190C3013.04 190 3257.04 62 3257.04 -158C3257.04 -380 3013.04 -516 2629.04 -516ZM2629.04 -294C2859.04 -294 2973.04 -250 2973.04 -158C2973.04 -66 2859.04 -24 2629.04 -24C2395.04 -24 2277.04 -66 2279.04 -158C2277.04 -250 2395.04 -294 2629.04 -294Z M5048.08 -1644H4758.08V196H5048.08ZM4046.08 -1518C3762.08 -1518 3554.08 -1264 3554.08 -862C3554.08 -454 3762.08 -200 4046.08 -200C4324.08 -200 4532.08 -454 4534.08 -862C4532.08 -1264 4324.08 -1518 4046.08 -1518ZM4046.08 -1258C4172.08 -1258 4256.08 -1124 4256.08 -862C4256.08 -596 4172.08 -462 4046.08 -462C3916.08 -462 3832.08 -596 3834.08 -862C3832.08 -1124 3916.08 -1258 4046.08 -1258Z" fill="currentColor"/></svg></a><a class="section" href="cm.html">CM Validation</a><nav aria-label="CM Validation 메뉴"><a href="cm.html" aria-current="page">소개</a><a href="cm-check.html">CM 검증</a><a href="cm-dictionary.html">기준사전 만들기</a></nav></div></header>
+
+<main>
+  <section class="hero">
+    <div>
+      <h1>쿼리 내기 전에,<br>CM 데이터를 한 번 더 봐요</h1>
+      <p>병용약물 추출 파일을 넣으면 용량·단위·빈도·경로가 이상한 행을 찾아 이슈 리스트 엑셀로 정리해 드려요. 완료된 과제에서 배운 기준과 비교해서, 근거가 확실한 오류와 한 번 확인할 값을 나눠서 보여줘요.</p>
+      <div class="actions">
+        <a class="btn primary" href="cm-check.html">CM 검증 시작하기</a>
+        <a class="btn plain" href="#how">사용 방법 보기</a>
+      </div>
+      <div class="safe">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 1.5 3 4v4.5c0 3.6 2.5 6.8 6 8 3.5-1.2 6-4.4 6-8V4L9 1.5Z" fill="none" stroke="#1f8a4c" stroke-width="1.6"/><path d="m6.2 9 2 2 3.6-3.8" fill="none" stroke="#1f8a4c" stroke-width="1.6" stroke-linecap="round"/></svg>
+        파일은 이 PC의 브라우저 안에서만 처리돼요. 어디에도 업로드되지 않아요.
+      </div>
+    </div>
+
+    <figure class="sheet play" style="margin:0" aria-label="검사 예시 화면">
+      <div class="sheet-top"><b>검사 예시</b><span>예시 데이터예요</span></div>
+      <table class="crf">
+        <thead><tr><th>CMTRT</th><th>CMDOSE</th><th>CMDOSU</th><th class="opt">CMFREQ</th><th>CMROUTE</th></tr></thead>
+        <tbody>
+          <tr class="row"><td>타이레놀정500mg</td><td class="hit-red">5000</td><td>mg</td><td class="opt">PRN</td><td>PO</td></tr>
+          <tr class="noterow"><td colspan="5"><div class="note red n1"><b>오류</b><span>1회 용량이 함량의 10배예요 (5000 mg, 함량 500 mg)<span class="why">DOSE-01 자릿수·단위 오류 의심</span></span></div></td></tr>
+          <tr class="row"><td>레토프라 정 10mg</td><td>1</td><td>tab</td><td class="opt">QD</td><td class="hit-amber">IV</td></tr>
+          <tr class="noterow"><td colspan="5"><div class="note amber n2"><b>확인 필요</b><span>이 제품에서 드문 경로예요: IV (0/44명)<span class="why">DICT-ROUTE 자주 쓰인 값: PO 44명(100%)</span></span></div></td></tr>
+          <tr class="row"><td>가스모틴 정 5mg</td><td>1</td><td>tab</td><td class="opt">BID</td><td>PO</td></tr>
+          <tr class="noterow"><td colspan="5"><div class="note green n3"><b>정상</b><span>함량이 맞고, 학습한 과제에서 가장 많이 쓰인 용량·빈도·경로예요</span></div></td></tr>
+        </tbody>
+      </table>
+    </figure>
+  </section>
+
+  <section class="block" id="how">
+    <h2>사용 방법</h2>
+    <p class="lead">처음 한 번만 기준사전을 불러오면, 그다음부터는 검사할 파일만 넣으면 돼요.</p>
+    <ol class="steps">
+      <li>
+        <h3>기준사전 불러오기</h3>
+        <p>팀 공유폴더의 기준사전 파일(.json)을 넣어요. 브라우저가 기억해서 다음부터는 생략돼요.</p>
+        <span class="who">처음 한 번</span>
+      </li>
+      <li>
+        <h3>CM 추출 파일 넣기</h3>
+        <p>cubeCDMS에서 받은 엑셀을 그대로 넣어요. 컬럼 이름이 과제마다 달라도 자동으로 찾아요.</p>
+        <span class="who">여러 파일 한 번에 가능</span>
+      </li>
+      <li>
+        <h3>이슈 리스트 받기</h3>
+        <p>오류와 확인 필요 행이 SUBJID·SEQ·CMTRT 순서로 정리된 엑셀을 내려받아요. 쿼리여부 칸에 바로 표시하면 돼요.</p>
+        <span class="who">엑셀 3시트</span>
+      </li>
+    </ol>
+  </section>
+
+
+  <section class="block">
+    <h2>결과는 이렇게 나눠요</h2>
+    <p class="lead">오탐을 줄이려고 근거가 확실한 것만 오류로 잡고, 나머지는 확인 필요로 따로 보여줘요.</p>
+    <dl class="verdicts">
+      <div><dt><i style="background:var(--red)"></i>오류</dt><dd>형식이 틀렸거나 제품 함량과 맞지 않아요.<span class="ex">예: 용량 "1/2", 500mg 정인데 5000 mg</span></dd></div>
+      <div><dt><i style="background:var(--amber)"></i>확인 필요</dt><dd>완료된 과제에서 이 제품에 거의 쓰이지 않은 값이에요.<span class="ex">예: 경구약인데 경로 IV</span></dd></div>
+      <div><dt><i style="background:var(--gray)"></i>판정 불가</dt><dd>학습한 피험자가 5명 미만인 제품이라 비교할 기준이 없어요.<span class="ex">예: 처음 나온 제품</span></dd></div>
+      <div><dt><i style="background:var(--green)"></i>정상</dt><dd>형식과 함량이 맞고, 학습한 값과도 맞아요.<span class="ex">예: 레토프라 정 10mg 1 tab QD PO</span></dd></div>
+    </dl>
+    <p class="disclaim">검토를 돕기 위한 결과예요. 쿼리 여부는 DM 담당자가 최종 판단해요.</p>
+  </section>
+</main>
+
+<footer class="site-foot"><div class="in">
+  <img src="img/becco-logo.png" alt="BeccoCRO" width="70" height="26">
+  <span><b>쿼랑이</b> Data Management 검토 도우미</span>
+  <span>문의 김지후</span>
+  <span>2026-11-18 버전</span>
+</div></footer>
+</body>
+</html>

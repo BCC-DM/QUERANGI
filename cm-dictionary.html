@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>기준사전 만들기 · 쿼랑이</title>
+<link rel="stylesheet" href="css/site.css">
+<style>
+  :root{--bg:#f2f7f0;--card:#fff;--ink:#1f2d27;--sub:#5a6b62;--line:#d9e6da;--accent:#007049;--accent-soft:#e3f1e6;--ok:#1f8a4c;--ok-soft:#e5f4ec;--warn:#b5590f;--warn-soft:#fcefe2}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+  main{max-width:1180px;margin:0 auto;padding:32px 24px 64px}
+  h1{font-size:26px;margin:0 0 6px}
+  .lead{color:var(--sub);margin:0 0 28px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px 24px;margin-bottom:18px}
+  .step h2{font-size:17px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .num{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;align-items:center;justify-content:center}
+  .hint{color:var(--sub);font-size:14px;margin:0 0 14px}
+  .drop{border:2px dashed #a9c7b0;border-radius:10px;padding:30px;text-align:center;color:var(--sub);cursor:pointer;transition:.15s}
+  .drop.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .drop b{color:var(--accent)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--sub);font-weight:600;background:#f6faf5}
+  .chip{display:inline-block;background:#eef1f6;border-radius:6px;padding:1px 7px;margin:2px 4px 2px 0;font-size:12.5px;white-space:nowrap}
+  .chip.miss{background:var(--warn-soft);color:var(--warn)}
+  .tag{display:inline-block;border-radius:6px;padding:2px 8px;font-size:12.5px;font-weight:600}
+  .tag.ok{background:var(--ok-soft);color:var(--ok)}
+  .tag.no{background:var(--warn-soft);color:var(--warn)}
+  .reason{color:var(--warn);font-size:13px;margin-top:3px}
+  .params{display:flex;gap:28px;flex-wrap:wrap}
+  .params label{display:flex;flex-direction:column;font-size:14px;color:var(--sub);gap:4px}
+  .params input{width:120px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:15px}
+  button{font:inherit;border:0;border-radius:8px;padding:10px 20px;cursor:pointer;font-weight:600}
+  .primary{background:var(--accent);color:#fff}
+  .primary:disabled{background:#aab6cf;cursor:not-allowed}
+  .ghost{background:var(--accent-soft);color:var(--accent)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:6px 0 20px}
+  .stat{border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .stat .v{font-size:22px;font-weight:700}
+  .stat .k{font-size:13px;color:var(--sub)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .search{flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px}
+  .bar{display:flex;flex-wrap:wrap;gap:4px}
+  .pv{font-size:12.5px;border-radius:6px;padding:1px 7px;background:#eef1f6;white-space:nowrap}
+  .pv.rare{background:var(--warn-soft);color:var(--warn)}
+  .muted{color:var(--sub);font-size:13px}
+  .note{background:#fffbea;border:1px solid #f0e2a8;border-radius:10px;padding:12px 16px;font-size:14px;color:#6b5a12;margin-top:18px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<header class="site-head"><div class="in"><a class="brand" href="index.html" aria-label="쿼랑이 처음 화면"><svg width="38" height="38" viewBox="18 22 164 140" role="img" aria-label="쿼랑이" xmlns="http://www.w3.org/2000/svg"><defs>
+  <radialGradient id="hfur" cx="40%" cy="30%" r="78%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#f4f6f9"/><stop offset=".85" stop-color="#dfe5ee"/><stop offset="1" stop-color="#c3ccda"/>
+  </radialGradient>
+  <radialGradient id="hbody" cx="38%" cy="25%" r="80%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#eef1f6"/><stop offset="1" stop-color="#b9c3d2"/>
+  </radialGradient>
+  <radialGradient id="hear" cx="40%" cy="35%" r="70%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cbd3df"/>
+  </radialGradient>
+  <radialGradient id="hinner" cx="50%" cy="38%" r="62%">
+    <stop offset="0" stop-color="#ffd9d2"/><stop offset=".7" stop-color="#f4aaa1"/><stop offset="1" stop-color="#e48e86"/>
+  </radialGradient>
+  <linearGradient id="hstripe" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#4b5874"/><stop offset="1" stop-color="#262f45"/>
+  </linearGradient>
+  <radialGradient id="hiris" cx="50%" cy="72%" r="70%">
+    <stop offset="0" stop-color="#7fb2ff"/><stop offset=".45" stop-color="#3561b8"/><stop offset="1" stop-color="#16244d"/>
+  </radialGradient>
+  <radialGradient id="hmuzzle" cx="50%" cy="30%" r="72%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dbe1ea"/>
+  </radialGradient>
+  <radialGradient id="hnose" cx="42%" cy="28%" r="72%">
+    <stop offset="0" stop-color="#ffbdb2"/><stop offset="1" stop-color="#d4574f"/>
+  </radialGradient>
+  <radialGradient id="hblush" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#ff9b94" stop-opacity=".8"/><stop offset="1" stop-color="#ff9b94" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="hscarf" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#9fd067"/><stop offset=".5" stop-color="#4fa257"/><stop offset="1" stop-color="#007049"/>
+  </linearGradient>
+  <linearGradient id="hboard" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#2f9a68"/><stop offset="1" stop-color="#00593a"/>
+  </linearGradient>
+  <linearGradient id="hring" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#b3dc7e"/><stop offset=".45" stop-color="#80ba4c"/><stop offset="1" stop-color="#006a45"/>
+  </linearGradient>
+  <radialGradient id="hlens" cx="35%" cy="30%" r="80%">
+    <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".5" stop-color="#e3f3e2" stop-opacity=".7"/><stop offset="1" stop-color="#9fcfae" stop-opacity=".85"/>
+  </radialGradient>
+  <linearGradient id="hhandle" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#27342e"/><stop offset=".5" stop-color="#55665d"/><stop offset="1" stop-color="#1c2622"/>
+  </linearGradient>
+  <filter id="hsoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="hsoft2" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4"/></filter>
+</defs>
+  <g>
+    <circle cx="55" cy="50" r="22" fill="url(#hear)"/>
+    <circle cx="145" cy="50" r="22" fill="url(#hear)"/>
+  </g>
+  <ellipse cx="56" cy="53" rx="11.5" ry="11" fill="url(#hinner)"/>
+  <ellipse cx="144" cy="53" rx="11.5" ry="11" fill="url(#hinner)"/>
+  <path d="M50 45c3-2 7-2 10 0M140 45c3-2 7-2 10 0" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".9"/>
+  <path d="M100 38C140 38 167 61 170 96L179 103L168 108L177 116L163 122C154 146 128 158 100 158C72 158 46 146 37 122L23 116L32 108L21 103L30 96C33 61 60 38 100 38Z" fill="url(#hfur)"/>
+  <ellipse cx="82" cy="56" rx="32" ry="12" fill="#fff" opacity=".9" filter="url(#hsoft2)"/>
+  <g fill="url(#hstripe)">
+    <path d="M100 40c-4.4 0-6.6 3.2-6.4 7.4l1.8 15.4c.5 3 8.7 3 9.2 0l1.8-15.4c.2-4.2-2-7.4-6.4-7.4Z"/>
+    <path d="M77.5 45.5c-3.3 1.1-4.4 4.4-3.1 7.4l6.3 11.6c1.5 2.4 7.1.4 6.5-2.4L85 50c-.8-3.8-4.3-5.4-7.5-4.5Z"/>
+    <path d="M122.5 45.5c3.3 1.1 4.4 4.4 3.1 7.4l-6.3 11.6c-1.5 2.4-7.1.4-6.5-2.4L115 50c.8-3.8 4.3-5.4 7.5-4.5Z"/>
+    <path d="M33 87c-1 3.3 1.2 6.4 4.4 6.6l16 1c2.8.1 3.3-4.8.6-5.8l-15-5.3c-3.2-1.1-5.4 1-6 3.5Z"/>
+    <path d="M35 107.5c0 3.2 2.8 5.4 5.8 4.5l12.8-3.9c2.7-.8 1.7-5.3-1.1-5.3l-13.2.3c-2.6.1-4.3 1.8-4.3 4.4Z"/>
+    <path d="M167 87c1 3.3-1.2 6.4-4.4 6.6l-16 1c-2.8.1-3.3-4.8-.6-5.8l15-5.3c3.2-1.1 5.4 1 6 3.5Z"/>
+    <path d="M165 107.5c0 3.2-2.8 5.4-5.8 4.5l-12.8-3.9c-2.7-.8-1.7-5.3 1.1-5.3l13.2.3c2.6.1 4.3 1.8 4.3 4.4Z"/>
+  </g>
+  <ellipse cx="59" cy="124" rx="16" ry="10.5" fill="url(#hblush)"/>
+  <ellipse cx="141" cy="124" rx="16" ry="10.5" fill="url(#hblush)"/>
+  <g class="eyes">
+    <ellipse cx="78" cy="101" rx="12.5" ry="14.5" fill="#101a35"/>
+    <ellipse cx="122" cy="101" rx="12.5" ry="14.5" fill="#101a35"/>
+    <ellipse cx="78" cy="102.5" rx="10.6" ry="12.4" fill="url(#hiris)"/>
+    <ellipse cx="122" cy="102.5" rx="10.6" ry="12.4" fill="url(#hiris)"/>
+    <ellipse cx="78" cy="100" rx="5.6" ry="6.6" fill="#0b1229"/>
+    <ellipse cx="122" cy="100" rx="5.6" ry="6.6" fill="#0b1229"/>
+    <ellipse cx="83" cy="94.5" rx="4.8" ry="5.4" fill="#fff"/>
+    <ellipse cx="127" cy="94.5" rx="4.8" ry="5.4" fill="#fff"/>
+    <circle cx="73.5" cy="107.5" r="2.2" fill="#fff" opacity=".9"/>
+    <circle cx="117.5" cy="107.5" r="2.2" fill="#fff" opacity=".9"/>
+    <path d="M71 110.5c4 3 10 3 14 0M115 110.5c4 3 10 3 14 0" stroke="#a9ccff" stroke-width="1.6" stroke-linecap="round" fill="none" opacity=".7"/>
+  </g>
+  <ellipse cx="100" cy="127.5" rx="27" ry="18" fill="url(#hmuzzle)"/>
+  <g stroke="#9aa6b8" stroke-width="1.3" stroke-linecap="round" opacity=".75">
+    <path d="M76 126l-19-3M76 131l-19 1.5M124 126l19-3M124 131l19 1.5"/>
+  </g>
+  <g fill="#b6bfcc"><circle cx="86" cy="128" r="1.1"/><circle cx="83" cy="132" r="1.1"/><circle cx="114" cy="128" r="1.1"/><circle cx="117" cy="132" r="1.1"/></g>
+  <path d="M91.8 117.2h16.4c2.3 0 3.4 2.5 1.9 4.2l-8.1 7.8c-1.1 1-2.9 1-4 0l-8.1-7.8c-1.5-1.7-.4-4.2 1.9-4.2Z" fill="url(#hnose)"/>
+  <ellipse cx="97" cy="119.8" rx="3.8" ry="1.7" fill="#fff" opacity=".75"/>
+  <path d="M100 129v4.4c0 3.8-3 6-6.3 6-3 0-5.2-2-5.7-4.5M100 133.4c0 3.8 3 6 6.3 6 3 0 5.2-2 5.7-4.5" fill="none" stroke="#3a3f4d" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M96 140.5c1.4 3.2 6.6 3.2 8 0" fill="#f08c86"/>
+</svg><svg class="wordmark" width="65.1" height="24" viewBox="14 -1654 5044 1860" aria-hidden="true"><path d="M1118 -1506H180V-1276H832C831 -1236 829 -1193 828 -1148L130 -1120L166 -882L806 -934C798 -875 788 -814 776 -748C510 -733 246 -731 24 -728L56 -502C184 -502 323 -503 468 -508V116H756V-522C920 -534 1086 -552 1248 -580L1226 -786C1173 -779 1119 -773 1066 -768C1116 -1042 1116 -1231 1118 -1382ZM1634 -1642H1344V-438H988V-212H1344V190H1634Z M3239.04 -1642H2951.04V-546H3239.04V-988H3479.04V-1224H3239.04ZM2685.04 -1534H1837.04V-1310H2403.04V-1184H1839.04V-606H1997.04C2379.04 -606 2613.04 -616 2863.04 -666L2833.04 -892C2616.04 -853 2420.04 -843 2127.04 -840V-972H2685.04ZM2629.04 -516C2237.04 -516 1993.04 -380 1993.04 -158C1993.04 62 2237.04 190 2629.04 190C3013.04 190 3257.04 62 3257.04 -158C3257.04 -380 3013.04 -516 2629.04 -516ZM2629.04 -294C2859.04 -294 2973.04 -250 2973.04 -158C2973.04 -66 2859.04 -24 2629.04 -24C2395.04 -24 2277.04 -66 2279.04 -158C2277.04 -250 2395.04 -294 2629.04 -294Z M5048.08 -1644H4758.08V196H5048.08ZM4046.08 -1518C3762.08 -1518 3554.08 -1264 3554.08 -862C3554.08 -454 3762.08 -200 4046.08 -200C4324.08 -200 4532.08 -454 4534.08 -862C4532.08 -1264 4324.08 -1518 4046.08 -1518ZM4046.08 -1258C4172.08 -1258 4256.08 -1124 4256.08 -862C4256.08 -596 4172.08 -462 4046.08 -462C3916.08 -462 3832.08 -596 3834.08 -862C3832.08 -1124 3916.08 -1258 4046.08 -1258Z" fill="currentColor"/></svg></a><a class="section" href="cm.html">CM Validation</a><nav aria-label="CM Validation 메뉴"><a href="cm.html">소개</a><a href="cm-check.html">CM 검증</a><a href="cm-dictionary.html" aria-current="page">기준사전 만들기</a></nav></div></header>
+<main>
+  <h1>기준사전 만들기</h1>
+  <p class="lead">완료된 과제의 CM 추출 파일을 넣으면, 제품별로 자주 쓰인 용량·빈도·경로를 집계해 <b>기준사전.json</b>을 만들어요. 파일은 이 PC 안에서만 처리되고 밖으로 전송되지 않아요.</p>
+
+  <section class="step">
+    <h2><span class="num">1</span>CM 추출 파일 넣기</h2>
+    <p class="hint">엑셀 파일(.xlsx)을 여러 개 한 번에 넣을 수 있어요. CMTRT 컬럼이 있는 시트를 자동으로 찾아요.</p>
+    <div class="drop" id="drop">여기로 파일을 끌어다 놓거나 <b>클릭해서 선택</b>하세요</div>
+    <input type="file" id="pick" accept=".xlsx,.xls" multiple class="hidden">
+    <div id="fileBox" class="hidden" style="margin-top:16px">
+      <table><thead><tr><th style="width:18%">파일</th><th style="width:9%">행</th><th>인식된 컬럼</th><th style="width:16%">학습 사용</th></tr></thead><tbody id="fileRows"></tbody></table>
+      <div class="row" style="margin-top:10px"><button class="ghost" id="clear">파일 모두 지우기</button></div>
+    </div>
+  </section>
+
+  <section class="step">
+    <h2><span class="num">2</span>기준값 확인</h2>
+    <p class="hint">기본값 그대로 두셔도 돼요. 테스트 후 조정할 예정이에요.</p>
+    <div class="params">
+      <label>최소 피험자 수 (이보다 적으면 판정 생략)<input type="number" id="minSubj" value="5" min="1"></label>
+      <label>희귀 기준 (%) (이보다 적게 쓰이면 확인 필요)<input type="number" id="rareCut" value="5" min="1" max="50"></label>
+    </div>
+  </section>
+
+  <section class="step">
+    <h2><span class="num">3</span>기준사전 만들기</h2>
+    <div class="row"><button class="primary" id="run" disabled>기준사전 만들기</button><span class="muted" id="runMsg">먼저 파일을 넣어 주세요.</span></div>
+    <div id="result" class="hidden">
+      <div class="stats" id="stats"></div>
+      <div class="row">
+        <button class="primary" id="dl">기준사전.json 내려받기</button>
+        <span class="muted">내려받은 파일은 <a href="cm-check.html">검증하기</a> 화면에서 불러와 사용해요.</span>
+      </div>
+      <h3 style="font-size:15px;margin:22px 0 8px">학습된 제품 미리보기</h3>
+      <div class="row">
+        <input class="search" id="q" placeholder="제품명, 성분명, 품목코드로 찾기">
+        <label class="muted"><input type="checkbox" id="onlyJudged" checked> 판정 가능한 제품만</label>
+      </div>
+      <table><thead><tr><th style="width:24%">제품</th><th style="width:8%">피험자</th><th>용량 (환산 후)</th><th style="width:16%">빈도</th><th style="width:14%">경로</th></tr></thead><tbody id="prodRows"></tbody></table>
+      <p class="muted" id="prodMore"></p>
+      <div class="note">주황색 값은 그 제품 안에서 희귀 기준보다 적게 쓰인 값이에요. 검증할 때 이런 값이 나오면 "확인 필요"로 표시돼요. 학습 데이터에 같은 오류가 자주 있으면 정상으로 배울 수 있으니, 미리보기에서 이상한 값이 많이 쓰인 제품이 있으면 알려 주세요.</div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot"><div class="in">
+  <img src="img/becco-logo.png" alt="BeccoCRO" width="70" height="26">
+  <span><b>쿼랑이</b> Data Management 검토 도우미</span>
+  <span>문의 김지후</span>
+  <span>2026-11-18 버전</span>
+</div></footer>
+
+<script src="js/xlsx.full.min.js"></script>
+<script src="js/cm-core.js"></script>
+<script>
+(function(){
+  var files = [];  // {label, result}
+  var dic = null;
+  var $ = function(id){ return document.getElementById(id); };
+  var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+  var fmt = function(n){ return Number(n).toLocaleString('ko-KR'); };
+
+  var drop = $('drop'), pick = $('pick');
+  drop.onclick = function(){ pick.click(); };
+  pick.onchange = function(){ addFiles(pick.files); pick.value = ''; };
+  ['dragenter','dragover'].forEach(function(e){ drop.addEventListener(e, function(ev){ ev.preventDefault(); drop.classList.add('on'); }); });
+  ['dragleave','drop'].forEach(function(e){ drop.addEventListener(e, function(ev){ ev.preventDefault(); drop.classList.remove('on'); }); });
+  drop.addEventListener('drop', function(ev){ addFiles(ev.dataTransfer.files); });
+  $('clear').onclick = function(){ files = []; dic = null; renderFiles(); $('result').classList.add('hidden'); };
+
+  function addFiles(list){
+    var arr = Array.prototype.slice.call(list).filter(function(f){ return /\.xlsx?$/i.test(f.name); });
+    if (!arr.length) return;
+    $('runMsg').textContent = '파일을 읽는 중이에요…';
+    var left = arr.length;
+    arr.forEach(function(f){
+      var rd = new FileReader();
+      rd.onload = function(){
+        var label = f.name.replace(/\.xlsx?$/i, '');
+        files = files.filter(function(x){ return x.label !== label; });
+        try {
+          var wb = XLSX.read(new Uint8Array(rd.result), { type: 'array' });
+          files.push({ label: label, result: CMCore.readFile(wb, XLSX, label) });
+        } catch (e) {
+          files.push({ label: label, result: { label: label, ok: false, reason: '파일을 열 수 없어요: ' + e.message, rows: [] } });
+        }
+        if (--left === 0) { files.sort(function(a,b){ return a.label.localeCompare(b.label); }); renderFiles(); }
+      };
+      rd.readAsArrayBuffer(f);
+    });
+  }
+
+  function renderFiles(){
+    $('fileBox').classList.toggle('hidden', !files.length);
+    var order = ['subj','trt','dose','unit','freq','route','code'];
+    $('fileRows').innerHTML = files.map(function(f){
+      var r = f.result, t = r.table, chips = '';
+      if (t) chips = order.map(function(k){
+        return t.map[k] ? '<span class="chip">' + CMCore.LABEL[k] + ' ' + esc(t.map[k].name) + '</span>' : '<span class="chip miss">' + CMCore.LABEL[k] + ' 없음</span>';
+      }).join('');
+      var n = t ? t.rows.filter(function(x){ return x && x.some(function(v){ return v != null && v !== ''; }); }).length : 0;
+      return '<tr><td><b>' + esc(f.label) + '</b>' + (t ? '<div class="muted">시트: ' + esc(t.sheet) + '</div>' : '') + '</td><td>' + fmt(n) + '</td><td>' + chips + '</td><td>' +
+        (r.ok ? '<span class="tag ok">사용</span>' : '<span class="tag no">제외</span><div class="reason">' + esc(r.reason) + '</div>') + '</td></tr>';
+    }).join('');
+    var usable = files.filter(function(f){ return f.result.ok; }).length;
+    $('run').disabled = !usable;
+    $('runMsg').textContent = files.length ? ('학습에 쓸 파일 ' + usable + '개 / 전체 ' + files.length + '개') : '먼저 파일을 넣어 주세요.';
+  }
+
+  $('run').onclick = function(){
+    var minSubj = Math.max(1, parseInt($('minSubj').value, 10) || 5);
+    var rareCut = Math.min(50, Math.max(1, parseFloat($('rareCut').value) || 5)) / 100;
+    dic = CMCore.build(files.map(function(f){ return f.result; }), { minSubj: minSubj, rareCut: rareCut });
+    var s = dic.meta.stats, used = dic.meta.files.filter(function(f){ return f.used; }).length;
+    var cards = [
+      ['학습에 쓴 파일', used + '개'],
+      ['학습한 행', fmt(s.rows)],
+      ['제품 수', fmt(s.products)],
+      ['판정 가능 제품', fmt(s.judgedProducts) + '개', '피험자 ' + minSubj + '명 이상'],
+      ['판정 가능 행', Math.round(s.judgedRows / Math.max(1, s.rows) * 100) + '%', fmt(s.judgedRows) + '행'],
+      ['mg 환산한 행', fmt(s.converted), 'tab·cap × 함량']
+    ];
+    $('stats').innerHTML = cards.map(function(c){ return '<div class="stat"><div class="v">' + c[1] + '</div><div class="k">' + c[0] + (c[2] ? ' · ' + c[2] : '') + '</div></div>'; }).join('');
+    $('result').classList.remove('hidden');
+    $('runMsg').textContent = '완료했어요.';
+    renderProducts();
+  };
+
+  function vals(obj, total, cut){
+    var ks = Object.keys(obj).sort(function(a,b){ return obj[b] - obj[a]; });
+    if (!ks.length) return '<span class="muted">자료 없음</span>';
+    var sum = ks.reduce(function(a,k){ return a + obj[k]; }, 0);
+    return '<div class="bar">' + ks.slice(0, 8).map(function(k){
+      var rare = obj[k] / sum < cut;
+      return '<span class="pv' + (rare ? ' rare' : '') + '">' + esc(k) + ' · ' + obj[k] + '</span>';
+    }).join('') + (ks.length > 8 ? '<span class="muted">외 ' + (ks.length - 8) + '개</span>' : '') + '</div>';
+  }
+
+  function renderProducts(){
+    if (!dic) return;
+    var q = $('q').value.trim().toUpperCase().replace(/\s+/g, ''), only = $('onlyJudged').checked;
+    var min = dic.meta.params.minSubj, cut = dic.meta.params.rareCut, P = dic.products;
+    var keys = Object.keys(P).filter(function(k){
+      var p = P[k];
+      if (only && p.nSubj < min) return false;
+      if (!q) return true;
+      var hay = (k + (p.name || '') + (p.generic || '') + (p.names || []).join('')).toUpperCase().replace(/\s+/g, '');
+      return hay.indexOf(q) >= 0;
+    }).sort(function(a,b){ return P[b].nSubj - P[a].nSubj; });
+    var show = keys.slice(0, 50);
+    $('prodRows').innerHTML = show.map(function(k){
+      var p = P[k];
+      return '<tr><td><b>' + esc(p.name) + '</b><div class="muted">' + esc(p.generic || '') + (k[0] === 'K' ? ' · 품목코드 ' + esc(k.slice(2)) : ' · 제품명 기준') +
+        (p.strength ? ' · 함량 ' + p.strength.v + ' ' + p.strength.u : '') + '</div></td><td>' + p.nSubj + '명</td><td>' + vals(p.dose, p.nSubj, cut) + '</td><td>' + vals(p.freq, p.nSubj, cut) + '</td><td>' + vals(p.route, p.nSubj, cut) + '</td></tr>';
+    }).join('') || '<tr><td colspan="5" class="muted">찾는 제품이 없어요.</td></tr>';
+    $('prodMore').textContent = keys.length > 50 ? ('전체 ' + fmt(keys.length) + '개 중 피험자가 많은 50개만 보여요. 검색으로 좁혀 보세요.') : '';
+  }
+  $('q').oninput = renderProducts;
+  $('onlyJudged').onchange = renderProducts;
+
+  $('dl').onclick = function(){
+    if (!dic) return;
+    var blob = new Blob([JSON.stringify(dic)], { type: 'application/json' });
+    var a = document.createElement('a'), d = new Date();
+    var stamp = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+    a.href = URL.createObjectURL(blob); a.download = '기준사전_' + stamp + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  };
+})();
+</script>
+</body>
+</html>

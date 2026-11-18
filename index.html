@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>쿼랑이 · DM 검토 도우미</title>
+<link rel="stylesheet" href="css/site.css">
+<style>
+  main{max-width:1180px;margin:0 auto;padding:0 24px}
+  .greet{display:grid;grid-template-columns:270px minmax(0,1fr);gap:40px;align-items:center;padding:56px 0 40px}
+  .stage{position:relative;width:270px;height:270px;border-radius:50%;background:radial-gradient(circle at 50% 42%,#fff 0,#eaf5e3 55%,#d6ebcb 100%);box-shadow:inset 0 -10px 24px rgba(0,112,73,.10),0 18px 36px -20px rgba(0,112,73,.45);display:flex;align-items:flex-end;justify-content:center}
+  .greet .tiger{width:250px;height:auto;display:block;margin-bottom:6px}
+  .bubble{position:relative;background:var(--sheet);border:2px solid var(--brand);box-shadow:0 14px 30px -18px rgba(0,112,73,.45);border-radius:20px;padding:22px 26px;max-width:560px}
+  .bubble::before{content:"";position:absolute;left:-14px;top:42px;width:22px;height:22px;background:var(--sheet);border-left:2px solid var(--brand);border-bottom:2px solid var(--brand);transform:rotate(45deg)}
+  .tagline{display:flex;align-items:center;gap:8px;margin:0 0 10px!important;color:var(--brand)!important;font-size:14px!important;font-weight:700;letter-spacing:.04em}
+  .tagline::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--leaf);box-shadow:0 0 0 3px var(--leaf-soft)}
+  .bubble h1{font-size:30px;line-height:1.3;letter-spacing:-.02em;margin:0 0 8px;font-weight:800}
+  .bubble p{margin:0;color:var(--sub);font-size:16px}
+  @keyframes wave{0%,100%{transform:rotate(0)}30%{transform:rotate(-14deg)}60%{transform:rotate(8deg)}}
+  .greet .glass{transform-origin:130px 191px;animation:wave 1.4s ease-in-out .4s 2}
+  .stage{cursor:pointer}
+
+  h2.pick{font-size:19px;margin:8px 0 14px}
+  .tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+  .tool{position:relative;display:flex;flex-direction:column;gap:10px;background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:22px;text-decoration:none;color:inherit;min-height:220px}
+  a.tool{border-color:var(--field)}
+  a.tool:hover{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+  .tool .ic{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--brand-soft)}
+  .tool h3{font-size:19px;margin:4px 0 0}
+  .tool p{margin:0;color:var(--sub);font-size:14.5px;flex:1}
+  .tool .foot{display:flex;justify-content:space-between;align-items:center}
+  .chip{font-size:12.5px;font-weight:600;border-radius:6px;padding:2px 9px}
+  .chip.ok{background:var(--green-soft);color:var(--green)}
+  .chip.soon{background:var(--gray-soft);color:var(--gray)}
+  .start{font-weight:700;color:var(--brand);font-size:15px}
+  .tool.soon .ic{background:var(--gray-soft)}
+  .tool.soon h3{color:#34433b}
+  .tool.idea{border-style:dashed;background:transparent;justify-content:center;align-items:flex-start}
+  .tool.idea h3{font-size:17px}
+  .safe{margin:26px 0 0;font-size:14px;color:var(--sub);display:flex;gap:8px;align-items:center}
+
+  @media (max-width:860px){
+    .greet{grid-template-columns:1fr;justify-items:center;gap:18px;padding:36px 0 28px;text-align:center}
+    .stage{width:210px;height:210px}
+    .greet .tiger{width:186px}
+    .bubble::before{left:50%;top:-13px;margin-left:-11px;transform:rotate(135deg)}
+    .tools{grid-template-columns:1fr}
+    .tool{min-height:0}
+  }
+  @media (max-width:560px){ main{padding:0 16px} .bubble h1{font-size:24px} }
+</style>
+</head>
+<body>
+<header class="site-head"><div class="in"><a class="brand" href="index.html" aria-label="쿼랑이 처음 화면"><svg width="38" height="38" viewBox="18 22 164 140" role="img" aria-label="쿼랑이" xmlns="http://www.w3.org/2000/svg"><defs>
+  <radialGradient id="hfur" cx="40%" cy="30%" r="78%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#f4f6f9"/><stop offset=".85" stop-color="#dfe5ee"/><stop offset="1" stop-color="#c3ccda"/>
+  </radialGradient>
+  <radialGradient id="hbody" cx="38%" cy="25%" r="80%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#eef1f6"/><stop offset="1" stop-color="#b9c3d2"/>
+  </radialGradient>
+  <radialGradient id="hear" cx="40%" cy="35%" r="70%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cbd3df"/>
+  </radialGradient>
+  <radialGradient id="hinner" cx="50%" cy="38%" r="62%">
+    <stop offset="0" stop-color="#ffd9d2"/><stop offset=".7" stop-color="#f4aaa1"/><stop offset="1" stop-color="#e48e86"/>
+  </radialGradient>
+  <linearGradient id="hstripe" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#4b5874"/><stop offset="1" stop-color="#262f45"/>
+  </linearGradient>
+  <radialGradient id="hiris" cx="50%" cy="72%" r="70%">
+    <stop offset="0" stop-color="#7fb2ff"/><stop offset=".45" stop-color="#3561b8"/><stop offset="1" stop-color="#16244d"/>
+  </radialGradient>
+  <radialGradient id="hmuzzle" cx="50%" cy="30%" r="72%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dbe1ea"/>
+  </radialGradient>
+  <radialGradient id="hnose" cx="42%" cy="28%" r="72%">
+    <stop offset="0" stop-color="#ffbdb2"/><stop offset="1" stop-color="#d4574f"/>
+  </radialGradient>
+  <radialGradient id="hblush" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#ff9b94" stop-opacity=".8"/><stop offset="1" stop-color="#ff9b94" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="hscarf" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#9fd067"/><stop offset=".5" stop-color="#4fa257"/><stop offset="1" stop-color="#007049"/>
+  </linearGradient>
+  <linearGradient id="hboard" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#2f9a68"/><stop offset="1" stop-color="#00593a"/>
+  </linearGradient>
+  <linearGradient id="hring" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#b3dc7e"/><stop offset=".45" stop-color="#80ba4c"/><stop offset="1" stop-color="#006a45"/>
+  </linearGradient>
+  <radialGradient id="hlens" cx="35%" cy="30%" r="80%">
+    <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".5" stop-color="#e3f3e2" stop-opacity=".7"/><stop offset="1" stop-color="#9fcfae" stop-opacity=".85"/>
+  </radialGradient>
+  <linearGradient id="hhandle" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#27342e"/><stop offset=".5" stop-color="#55665d"/><stop offset="1" stop-color="#1c2622"/>
+  </linearGradient>
+  <filter id="hsoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="hsoft2" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4"/></filter>
+</defs>
+  <g>
+    <circle cx="55" cy="50" r="22" fill="url(#hear)"/>
+    <circle cx="145" cy="50" r="22" fill="url(#hear)"/>
+  </g>
+  <ellipse cx="56" cy="53" rx="11.5" ry="11" fill="url(#hinner)"/>
+  <ellipse cx="144" cy="53" rx="11.5" ry="11" fill="url(#hinner)"/>
+  <path d="M50 45c3-2 7-2 10 0M140 45c3-2 7-2 10 0" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".9"/>
+  <path d="M100 38C140 38 167 61 170 96L179 103L168 108L177 116L163 122C154 146 128 158 100 158C72 158 46 146 37 122L23 116L32 108L21 103L30 96C33 61 60 38 100 38Z" fill="url(#hfur)"/>
+  <ellipse cx="82" cy="56" rx="32" ry="12" fill="#fff" opacity=".9" filter="url(#hsoft2)"/>
+  <g fill="url(#hstripe)">
+    <path d="M100 40c-4.4 0-6.6 3.2-6.4 7.4l1.8 15.4c.5 3 8.7 3 9.2 0l1.8-15.4c.2-4.2-2-7.4-6.4-7.4Z"/>
+    <path d="M77.5 45.5c-3.3 1.1-4.4 4.4-3.1 7.4l6.3 11.6c1.5 2.4 7.1.4 6.5-2.4L85 50c-.8-3.8-4.3-5.4-7.5-4.5Z"/>
+    <path d="M122.5 45.5c3.3 1.1 4.4 4.4 3.1 7.4l-6.3 11.6c-1.5 2.4-7.1.4-6.5-2.4L115 50c.8-3.8 4.3-5.4 7.5-4.5Z"/>
+    <path d="M33 87c-1 3.3 1.2 6.4 4.4 6.6l16 1c2.8.1 3.3-4.8.6-5.8l-15-5.3c-3.2-1.1-5.4 1-6 3.5Z"/>
+    <path d="M35 107.5c0 3.2 2.8 5.4 5.8 4.5l12.8-3.9c2.7-.8 1.7-5.3-1.1-5.3l-13.2.3c-2.6.1-4.3 1.8-4.3 4.4Z"/>
+    <path d="M167 87c1 3.3-1.2 6.4-4.4 6.6l-16 1c-2.8.1-3.3-4.8-.6-5.8l15-5.3c3.2-1.1 5.4 1 6 3.5Z"/>
+    <path d="M165 107.5c0 3.2-2.8 5.4-5.8 4.5l-12.8-3.9c-2.7-.8-1.7-5.3 1.1-5.3l13.2.3c2.6.1 4.3 1.8 4.3 4.4Z"/>
+  </g>
+  <ellipse cx="59" cy="124" rx="16" ry="10.5" fill="url(#hblush)"/>
+  <ellipse cx="141" cy="124" rx="16" ry="10.5" fill="url(#hblush)"/>
+  <g class="eyes">
+    <ellipse cx="78" cy="101" rx="12.5" ry="14.5" fill="#101a35"/>
+    <ellipse cx="122" cy="101" rx="12.5" ry="14.5" fill="#101a35"/>
+    <ellipse cx="78" cy="102.5" rx="10.6" ry="12.4" fill="url(#hiris)"/>
+    <ellipse cx="122" cy="102.5" rx="10.6" ry="12.4" fill="url(#hiris)"/>
+    <ellipse cx="78" cy="100" rx="5.6" ry="6.6" fill="#0b1229"/>
+    <ellipse cx="122" cy="100" rx="5.6" ry="6.6" fill="#0b1229"/>
+    <ellipse cx="83" cy="94.5" rx="4.8" ry="5.4" fill="#fff"/>
+    <ellipse cx="127" cy="94.5" rx="4.8" ry="5.4" fill="#fff"/>
+    <circle cx="73.5" cy="107.5" r="2.2" fill="#fff" opacity=".9"/>
+    <circle cx="117.5" cy="107.5" r="2.2" fill="#fff" opacity=".9"/>
+    <path d="M71 110.5c4 3 10 3 14 0M115 110.5c4 3 10 3 14 0" stroke="#a9ccff" stroke-width="1.6" stroke-linecap="round" fill="none" opacity=".7"/>
+  </g>
+  <ellipse cx="100" cy="127.5" rx="27" ry="18" fill="url(#hmuzzle)"/>
+  <g stroke="#9aa6b8" stroke-width="1.3" stroke-linecap="round" opacity=".75">
+    <path d="M76 126l-19-3M76 131l-19 1.5M124 126l19-3M124 131l19 1.5"/>
+  </g>
+  <g fill="#b6bfcc"><circle cx="86" cy="128" r="1.1"/><circle cx="83" cy="132" r="1.1"/><circle cx="114" cy="128" r="1.1"/><circle cx="117" cy="132" r="1.1"/></g>
+  <path d="M91.8 117.2h16.4c2.3 0 3.4 2.5 1.9 4.2l-8.1 7.8c-1.1 1-2.9 1-4 0l-8.1-7.8c-1.5-1.7-.4-4.2 1.9-4.2Z" fill="url(#hnose)"/>
+  <ellipse cx="97" cy="119.8" rx="3.8" ry="1.7" fill="#fff" opacity=".75"/>
+  <path d="M100 129v4.4c0 3.8-3 6-6.3 6-3 0-5.2-2-5.7-4.5M100 133.4c0 3.8 3 6 6.3 6 3 0 5.2-2 5.7-4.5" fill="none" stroke="#3a3f4d" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M96 140.5c1.4 3.2 6.6 3.2 8 0" fill="#f08c86"/>
+</svg><svg class="wordmark" width="65.1" height="24" viewBox="14 -1654 5044 1860" aria-hidden="true"><path d="M1118 -1506H180V-1276H832C831 -1236 829 -1193 828 -1148L130 -1120L166 -882L806 -934C798 -875 788 -814 776 -748C510 -733 246 -731 24 -728L56 -502C184 -502 323 -503 468 -508V116H756V-522C920 -534 1086 -552 1248 -580L1226 -786C1173 -779 1119 -773 1066 -768C1116 -1042 1116 -1231 1118 -1382ZM1634 -1642H1344V-438H988V-212H1344V190H1634Z M3239.04 -1642H2951.04V-546H3239.04V-988H3479.04V-1224H3239.04ZM2685.04 -1534H1837.04V-1310H2403.04V-1184H1839.04V-606H1997.04C2379.04 -606 2613.04 -616 2863.04 -666L2833.04 -892C2616.04 -853 2420.04 -843 2127.04 -840V-972H2685.04ZM2629.04 -516C2237.04 -516 1993.04 -380 1993.04 -158C1993.04 62 2237.04 190 2629.04 190C3013.04 190 3257.04 62 3257.04 -158C3257.04 -380 3013.04 -516 2629.04 -516ZM2629.04 -294C2859.04 -294 2973.04 -250 2973.04 -158C2973.04 -66 2859.04 -24 2629.04 -24C2395.04 -24 2277.04 -66 2279.04 -158C2277.04 -250 2395.04 -294 2629.04 -294Z M5048.08 -1644H4758.08V196H5048.08ZM4046.08 -1518C3762.08 -1518 3554.08 -1264 3554.08 -862C3554.08 -454 3762.08 -200 4046.08 -200C4324.08 -200 4532.08 -454 4534.08 -862C4532.08 -1264 4324.08 -1518 4046.08 -1518ZM4046.08 -1258C4172.08 -1258 4256.08 -1124 4256.08 -862C4256.08 -596 4172.08 -462 4046.08 -462C3916.08 -462 3832.08 -596 3834.08 -862C3832.08 -1124 3916.08 -1258 4046.08 -1258Z" fill="currentColor"/></svg></a><img class="corp" src="img/becco-logo.png" alt="BeccoCRO" width="92" height="34"></div></header>
+<main>
+  <section class="greet">
+    <div class="stage" title="쿼랑이를 쓰다듬어 주세요"><svg class="tiger" viewBox="14 22 180 200" role="img" aria-label="쿼랑이" xmlns="http://www.w3.org/2000/svg"><defs>
+  <filter id="tfuzz" x="-12%" y="-12%" width="124%" height="124%">
+    <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="4" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G" result="d"/>
+    <feTurbulence type="fractalNoise" baseFrequency="2.4" numOctaves="1" seed="9" result="n2"/>
+    <feColorMatrix in="n2" type="matrix" values="0 0 0 0 .55  0 0 0 0 .6  0 0 0 0 .7  0 0 0 .14 0" result="sp"/>
+    <feComposite in="sp" in2="d" operator="in" result="sp2"/>
+    <feMerge><feMergeNode in="d"/><feMergeNode in="sp2"/></feMerge>
+  </filter>
+  <radialGradient id="tfur" cx="40%" cy="30%" r="78%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#f4f6f9"/><stop offset=".85" stop-color="#dfe5ee"/><stop offset="1" stop-color="#c3ccda"/>
+  </radialGradient>
+  <radialGradient id="tbody" cx="38%" cy="25%" r="80%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#eef1f6"/><stop offset="1" stop-color="#b9c3d2"/>
+  </radialGradient>
+  <radialGradient id="tear" cx="40%" cy="35%" r="70%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cbd3df"/>
+  </radialGradient>
+  <radialGradient id="tinner" cx="50%" cy="38%" r="62%">
+    <stop offset="0" stop-color="#ffd9d2"/><stop offset=".7" stop-color="#f4aaa1"/><stop offset="1" stop-color="#e48e86"/>
+  </radialGradient>
+  <linearGradient id="tstripe" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#4b5874"/><stop offset="1" stop-color="#262f45"/>
+  </linearGradient>
+  <radialGradient id="tiris" cx="50%" cy="72%" r="70%">
+    <stop offset="0" stop-color="#7fb2ff"/><stop offset=".45" stop-color="#3561b8"/><stop offset="1" stop-color="#16244d"/>
+  </radialGradient>
+  <radialGradient id="tmuzzle" cx="50%" cy="30%" r="72%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dbe1ea"/>
+  </radialGradient>
+  <radialGradient id="tnose" cx="42%" cy="28%" r="72%">
+    <stop offset="0" stop-color="#ffbdb2"/><stop offset="1" stop-color="#d4574f"/>
+  </radialGradient>
+  <radialGradient id="tblush" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#ff9b94" stop-opacity=".8"/><stop offset="1" stop-color="#ff9b94" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="tscarf" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#9fd067"/><stop offset=".5" stop-color="#4fa257"/><stop offset="1" stop-color="#007049"/>
+  </linearGradient>
+  <linearGradient id="tboard" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#2f9a68"/><stop offset="1" stop-color="#00593a"/>
+  </linearGradient>
+  <linearGradient id="tring" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#b3dc7e"/><stop offset=".45" stop-color="#80ba4c"/><stop offset="1" stop-color="#006a45"/>
+  </linearGradient>
+  <radialGradient id="tlens" cx="35%" cy="30%" r="80%">
+    <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".5" stop-color="#e3f3e2" stop-opacity=".7"/><stop offset="1" stop-color="#9fcfae" stop-opacity=".85"/>
+  </radialGradient>
+  <linearGradient id="thandle" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#27342e"/><stop offset=".5" stop-color="#55665d"/><stop offset="1" stop-color="#1c2622"/>
+  </linearGradient>
+  <filter id="tsoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="tsoft2" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4"/></filter>
+</defs><ellipse class="shadow" cx="102" cy="214" rx="66" ry="7" fill="#1f2d27" opacity=".18" filter="url(#tsoft)"/><g class="hopper">
+  <ellipse cx="100" cy="181" rx="55" ry="34" fill="url(#tbody)" filter="url(#tfuzz)"/>
+  <g fill="url(#tstripe)">
+    <path d="M49 173c5 .6 11 .5 15-.6 2.3-.7 1.6-4.4-.8-4.5l-12.6-.5c-2.6-.1-4 5.3-1.6 5.6Z"/>
+    <path d="M151 173c-5 .6-11 .5-15-.6-2.3-.7-1.6-4.4.8-4.5l12.6-.5c2.6-.1 4 5.3 1.6 5.6Z"/>
+  </g>
+  <ellipse cx="100" cy="189" rx="24" ry="16" fill="url(#tmuzzle)"/>
+  <path d="M58 152c12 10 72 10 84 0l3 9c-14 12-76 12-90 0Z" fill="url(#tscarf)"/>
+  <path d="M136 156c8 3 13 10 12 19-6-2-10-7-12-12Z" fill="url(#tscarf)"/>
+  <path d="M141 158c6 5 9 11 8 18" stroke="#fff" stroke-width="1.6" opacity=".35" fill="none"/>
+  <g>
+    <circle cx="100" cy="171" r="11.5" fill="#fff" stroke="url(#tscarf)" stroke-width="3"/>
+    <text x="100" y="175" text-anchor="middle" font-family="Pretendard,Malgun Gothic,sans-serif" font-size="10" font-weight="800" fill="#007049">DM</text>
+  </g>
+  <ellipse cx="100" cy="153" rx="52" ry="8" fill="#7f8ca0" opacity=".28" filter="url(#tsoft)"/>
+
+  <g filter="url(#tfuzz)">
+    <circle cx="55" cy="50" r="22" fill="url(#tear)"/>
+    <circle cx="145" cy="50" r="22" fill="url(#tear)"/>
+  </g>
+  <ellipse cx="56" cy="53" rx="11.5" ry="11" fill="url(#tinner)"/>
+  <ellipse cx="144" cy="53" rx="11.5" ry="11" fill="url(#tinner)"/>
+  <path d="M50 45c3-2 7-2 10 0M140 45c3-2 7-2 10 0" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".9"/>
+  <path d="M100 38C140 38 167 61 170 96L179 103L168 108L177 116L163 122C154 146 128 158 100 158C72 158 46 146 37 122L23 116L32 108L21 103L30 96C33 61 60 38 100 38Z" fill="url(#tfur)" filter="url(#tfuzz)"/>
+  <ellipse cx="82" cy="56" rx="32" ry="12" fill="#fff" opacity=".9" filter="url(#tsoft2)"/>
+  <g fill="url(#tstripe)">
+    <path d="M100 40c-4.4 0-6.6 3.2-6.4 7.4l1.8 15.4c.5 3 8.7 3 9.2 0l1.8-15.4c.2-4.2-2-7.4-6.4-7.4Z"/>
+    <path d="M77.5 45.5c-3.3 1.1-4.4 4.4-3.1 7.4l6.3 11.6c1.5 2.4 7.1.4 6.5-2.4L85 50c-.8-3.8-4.3-5.4-7.5-4.5Z"/>
+    <path d="M122.5 45.5c3.3 1.1 4.4 4.4 3.1 7.4l-6.3 11.6c-1.5 2.4-7.1.4-6.5-2.4L115 50c.8-3.8 4.3-5.4 7.5-4.5Z"/>
+    <path d="M33 87c-1 3.3 1.2 6.4 4.4 6.6l16 1c2.8.1 3.3-4.8.6-5.8l-15-5.3c-3.2-1.1-5.4 1-6 3.5Z"/>
+    <path d="M35 107.5c0 3.2 2.8 5.4 5.8 4.5l12.8-3.9c2.7-.8 1.7-5.3-1.1-5.3l-13.2.3c-2.6.1-4.3 1.8-4.3 4.4Z"/>
+    <path d="M167 87c1 3.3-1.2 6.4-4.4 6.6l-16 1c-2.8.1-3.3-4.8-.6-5.8l15-5.3c3.2-1.1 5.4 1 6 3.5Z"/>
+    <path d="M165 107.5c0 3.2-2.8 5.4-5.8 4.5l-12.8-3.9c-2.7-.8-1.7-5.3 1.1-5.3l13.2.3c2.6.1 4.3 1.8 4.3 4.4Z"/>
+  </g>
+  <ellipse cx="59" cy="124" rx="16" ry="10.5" fill="url(#tblush)"/>
+  <ellipse cx="141" cy="124" rx="16" ry="10.5" fill="url(#tblush)"/>
+  <g class="eyes">
+    <ellipse cx="78" cy="101" rx="12.5" ry="14.5" fill="#101a35"/>
+    <ellipse cx="122" cy="101" rx="12.5" ry="14.5" fill="#101a35"/>
+    <ellipse cx="78" cy="102.5" rx="10.6" ry="12.4" fill="url(#tiris)"/>
+    <ellipse cx="122" cy="102.5" rx="10.6" ry="12.4" fill="url(#tiris)"/>
+    <ellipse cx="78" cy="100" rx="5.6" ry="6.6" fill="#0b1229"/>
+    <ellipse cx="122" cy="100" rx="5.6" ry="6.6" fill="#0b1229"/>
+    <ellipse cx="83" cy="94.5" rx="4.8" ry="5.4" fill="#fff"/>
+    <ellipse cx="127" cy="94.5" rx="4.8" ry="5.4" fill="#fff"/>
+    <circle cx="73.5" cy="107.5" r="2.2" fill="#fff" opacity=".9"/>
+    <circle cx="117.5" cy="107.5" r="2.2" fill="#fff" opacity=".9"/>
+    <path d="M71 110.5c4 3 10 3 14 0M115 110.5c4 3 10 3 14 0" stroke="#a9ccff" stroke-width="1.6" stroke-linecap="round" fill="none" opacity=".7"/>
+  </g>
+  <ellipse cx="100" cy="127.5" rx="27" ry="18" fill="url(#tmuzzle)"/>
+  <g stroke="#9aa6b8" stroke-width="1.3" stroke-linecap="round" opacity=".75">
+    <path d="M76 126l-19-3M76 131l-19 1.5M124 126l19-3M124 131l19 1.5"/>
+  </g>
+  <g fill="#b6bfcc"><circle cx="86" cy="128" r="1.1"/><circle cx="83" cy="132" r="1.1"/><circle cx="114" cy="128" r="1.1"/><circle cx="117" cy="132" r="1.1"/></g>
+  <path d="M91.8 117.2h16.4c2.3 0 3.4 2.5 1.9 4.2l-8.1 7.8c-1.1 1-2.9 1-4 0l-8.1-7.8c-1.5-1.7-.4-4.2 1.9-4.2Z" fill="url(#tnose)"/>
+  <ellipse cx="97" cy="119.8" rx="3.8" ry="1.7" fill="#fff" opacity=".75"/>
+  <path d="M100 129v4.4c0 3.8-3 6-6.3 6-3 0-5.2-2-5.7-4.5M100 133.4c0 3.8 3 6 6.3 6 3 0 5.2-2 5.7-4.5" fill="none" stroke="#3a3f4d" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M96 140.5c1.4 3.2 6.6 3.2 8 0" fill="#f08c86"/>
+
+  <g transform="rotate(-12 62 178)">
+    <rect x="41" y="150" width="40" height="50" rx="5" fill="url(#tboard)"/>
+    <rect x="46" y="157" width="30" height="38" rx="2.5" fill="#fff"/>
+    <rect x="53" y="146" width="16" height="8" rx="2.5" fill="#d7dfe0" stroke="#9aa8a3" stroke-width="1"/>
+    <path d="M50 165h17M50 172h20M50 179h14M50 186h18" stroke="#c4ccd6" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="71" cy="179" r="3.6" fill="#c0352b"/>
+    <path d="M71 177v2.2" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/><circle cx="71" cy="181" r=".7" fill="#fff"/>
+  </g>
+  <ellipse cx="66" cy="200" rx="14" ry="10.5" fill="url(#tear)" filter="url(#tfuzz)"/>
+  <path d="M60 204v-3M66 205v-3M72 204v-3" stroke="#aeb8c6" stroke-width="1.5" stroke-linecap="round"/>
+
+  <g class="glass">
+    <path d="M147 170l-17 21" stroke="url(#thandle)" stroke-width="10" stroke-linecap="round"/>
+    <ellipse cx="163" cy="158" rx="23" ry="23" fill="#1f2d27" opacity=".14" filter="url(#tsoft2)"/>
+    <circle cx="160" cy="154" r="22" fill="url(#tlens)" stroke="url(#tring)" stroke-width="7"/>
+    <path d="M147 149c2-6 7-10 13-11" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity=".95"/>
+    <circle cx="170" cy="163" r="2.4" fill="#fff" opacity=".8"/>
+    <ellipse cx="128" cy="197" rx="14" ry="10.5" fill="url(#tear)" filter="url(#tfuzz)"/>
+    <path d="M122 201v-3M128 202v-3M134 201v-3" stroke="#aeb8c6" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+</g></svg></div>
+    <div class="bubble">
+      <p class="tagline">당신 곁의 작은 DM 파트너</p>
+      <h1>안녕하세요, 쿼랑이예요!<br>오늘은 어떤 검토를 도와드릴까요?</h1>
+      <p>BeccoCRO Data Management의 검토 도우미예요. 쓰려는 도구를 골라 주세요. 파일은 이 PC의 브라우저 안에서만 처리돼요.</p>
+    </div>
+  </section>
+
+  <h2 class="pick">도구 고르기</h2>
+  <div class="tools">
+    <a class="tool" href="cm.html">
+      <span class="ic"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="4" y="3" width="17" height="22" rx="3" fill="none" stroke="#007049" stroke-width="2"/><path d="M8 9h9M8 13h9M8 17h5" stroke="#007049" stroke-width="2" stroke-linecap="round"/><circle cx="21" cy="20" r="5" fill="#fff" stroke="#c0352b" stroke-width="2"/><path d="M21 17.6v2.6" stroke="#c0352b" stroke-width="2" stroke-linecap="round"/><circle cx="21" cy="22.4" r="1" fill="#c0352b"/></svg></span>
+      <h3>CM Validation</h3>
+      <p>병용약물 추출 파일의 용량·단위·빈도·경로를 검사하고 이슈 리스트 엑셀을 만들어요.</p>
+      <span class="foot"><span class="chip ok">사용 가능</span><span class="start">시작하기</span></span>
+    </a>
+    <div class="tool soon" aria-disabled="true">
+      <span class="ic"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="5" y="3" width="18" height="22" rx="3" fill="none" stroke="#6b7280" stroke-width="2"/><path d="M9 10h10M9 14h10M9 18h6" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/></svg></span>
+      <h3>PMS Expectedness 점검</h3>
+      <p>허가사항 PDF와 Medical Coding Sheet로 이상사례의 Expectedness와 근거 위치를 채워요.</p>
+      <span class="foot"><span class="chip soon">준비 중</span></span>
+    </div>
+    <div class="tool idea">
+      <h3>필요한 도구가 있나요?</h3>
+      <p>반복해서 손으로 확인하는 작업이 있으면 김지후에게 알려 주세요. 쿼랑이 도구로 추가할게요.</p>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot"><div class="in">
+  <img src="img/becco-logo.png" alt="BeccoCRO" width="70" height="26">
+  <span><b>쿼랑이</b> Data Management 검토 도우미</span>
+  <span>문의 김지후</span>
+  <span>2026-11-18 버전</span>
+</div></footer>
+</body>
+</html>
