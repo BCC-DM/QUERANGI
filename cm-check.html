@@ -199,6 +199,9 @@
           <tr><td><b>STRUCT-02</b></td><td>필수값(용량·단위·빈도·경로)이 비어 있어요. 빈도 컬럼이 없는 파일은 빈도를 검사하지 않아요.</td></tr>
           <tr><td><b>STRUCT-03</b></td><td>허용 단위 목록에 없는 단위예요. 예: box, apply, 회</td></tr>
           <tr><td><b>STRUCT-04</b></td><td>빈도·경로가 표준 표기가 아니에요. 예: "5~6회", "하루한번"</td></tr>
+          <tr><td><b>FORM-01</b></td><td>제품명이 "정" 또는 영문 tab으로 끝나는데 단위가 캡슐(cap)이에요. 예: 레토프라 정 10mg 1 cap, Pletaal tab. 100mg 1 cap</td></tr>
+          <tr><td><b>FORM-02</b></td><td>제품명이 "캡슐"·"캡" 또는 영문 cap으로 끝나는데 단위가 정(tab)이에요. 예: 엘도스 캡슐 2 tab, CELEBREX CAP 100mg 2 tab</td></tr>
+          <tr><td><b>FORM-03</b></td><td>제품명이 "주"·"주사" 또는 영문 inj로 끝나는데 경로가 IV·IM·SC가 아니에요. 예: 타조락탐 주 4.5g 경로 PO, 페니라민 주사 경로 PO</td></tr>
           <tr><td><b>DOSE-01</b></td><td>제품명의 함량과 1회 용량이 10배 이상 차이 나요. 예: 타이레놀정500mg인데 5000 mg, 75μg 정인데 30 tab</td></tr>
           <tr><td><b>DICT-DOSE · FREQ · ROUTE</b></td><td>학습한 과제에서 이 제품에 거의 쓰이지 않은 용량·빈도·경로예요. tab·cap은 함량을 곱해 mg로 바꿔 비교해요.</td></tr>
         </tbody></table>

@@ -129,6 +129,28 @@
     return { text: d + ' ' + u, conv: conv };
   }
 
+  // 제품명 끝의 제형: 함량·용량·괄호를 떼어낸 뒤 마지막 글자로 판단
+  // 예: '레토프라 정 10mg' → 정, '엘도스 캡슐' → 캡슐, '타조락탐 주 4.5g' → 주
+  function formOf(name) {
+    if (!name) return null;
+    var s = String(name).trim(), prev;
+    do {
+      prev = s;
+      s = s.replace(/\s*\([^()]*\)\s*$/, '')
+           .replace(/\s*[\d.,\/]+\s*(mg|mcg|μg|µg|㎍|㎎|g|ml|㎖|l|iu|units?|%|밀리그램|그램|밀리리터|mg\/ml|mg\/g)?\s*$/i, '')
+           .replace(/[\s.\-_,]+$/, '');
+    } while (s !== prev && s.length);
+    var m;
+    if ((m = /(캡슐|캡)$/.exec(s))) return { form: 'cap', word: m[1] };
+    if (/정$/.test(s)) return { form: 'tab', word: '정' };
+    if ((m = /(주사액|주사제|주사|주)$/.exec(s))) return { form: 'inj', word: m[1] };
+    // 영문 제형 표기: 'Pletaal tab. 100mg', 'CELEBREX CAP 100mg', 'xxx inj.'
+    if ((m = /(?:^|[\s.\-])(tabs?|tablets?)$/i.exec(s))) return { form: 'tab', word: m[1] };
+    if ((m = /(?:^|[\s.\-])(caps?|capsules?)$/i.exec(s))) return { form: 'cap', word: m[1] };
+    if ((m = /(?:^|[\s.\-])(inj|injection)$/i.exec(s))) return { form: 'inj', word: m[1] };
+    return null;
+  }
+
   // ---------- 4. 파일 한 개 읽기 ----------
   function readFile(wb, XLSX, label) {
     var t = findTable(wb, XLSX);
@@ -251,6 +273,17 @@
     if (freqBad) add('오류', 'STRUCT-04', '빈도가 표준 표기가 아니에요: "' + r.rawFreq + '"', '예: QD, BID, TID, QID, PRN, ONCE, QW, QM');
     if (routeBad) add('오류', 'STRUCT-04', '경로가 표준 표기가 아니에요: "' + r.rawRoute + '"', '예: PO, IV, IM, SC, INHALATION, OPHTHALMIC, TOPICAL');
 
+    // 제형 규칙 (11-18 지후 결정)
+    var fm = formOf(r.raw);
+    if (fm && fm.form === 'tab' && r.unit === 'cap')
+      add('오류', 'FORM-01', '제품명이 "' + fm.word + '"(으)로 끝나는데 단위가 캡슐이에요: "' + r.rawUnit + '"', '정제는 tab으로 입력');
+    if (fm && fm.form === 'cap' && r.unit === 'tab')
+      add('오류', 'FORM-02', '제품명이 "' + fm.word + '"(으)로 끝나는데 단위가 정이에요: "' + r.rawUnit + '"', '캡슐은 cap으로 입력');
+    if (fm && fm.form === 'inj' && r.route && !routeBad && ['IV', 'IM', 'SC'].indexOf(r.route) < 0) {
+      add('오류', 'FORM-03', '제품명이 "' + fm.word + '"(으)로 끝나는데 경로가 IV·IM·SC가 아니에요: "' + r.rawRoute + '"', '주사제는 IV, IM, SC 중 하나로 입력');
+      routeBad = true;
+    }
+
     // 제품 찾기
     var key = r.code ? 'K:' + r.code : (r.name && dic.nameToKey[r.name] ? dic.nameToKey[r.name] : (r.name ? 'N:' + r.name : null));
     var p = key ? P[key] : null;
@@ -310,6 +343,6 @@
   }
 
   var api = { findTable: findTable, readFile: readFile, build: build, validate: validate, checkRow: checkRow, normUnit: normUnit, normFreq: normFreq, normRoute: normRoute,
-    normName: normName, parseDose: parseDose, strengthFromName: strengthFromName, canonical: canonical, LABEL: LABEL };
+    normName: normName, parseDose: parseDose, formOf: formOf, strengthFromName: strengthFromName, canonical: canonical, LABEL: LABEL };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.CMCore = api;
 })(this);
