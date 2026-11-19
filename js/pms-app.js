@@ -278,7 +278,15 @@
     try { md = await getMd(vs.main); } catch (e) { idle(); $('mdMsg').innerHTML = '<span style="color:var(--err)">' + esc(e.message) + '</span>'; return; }
     var r = PMS.labelTerms(S.label, md, S.termMap, S.scope);
     idle();
-    var added = false;
+    // 저장된 매핑표 정리: 빈도 단어, 그리고 이제 나오지 않는 '제안' 항목은 지움 (확정한 항목은 유지)
+    var now = {}, removed = false;
+    r.unmapped.forEach(function (u) { now[u.term] = 1; });
+    Object.keys(S.termMap).forEach(function (t) {
+      var rows = S.termMap[t] || [];
+      var allProposed = rows.every(function (x) { return x[1] !== '확정'; });
+      if (PMS.isFreqWord(t) || (allProposed && !now[t])) { delete S.termMap[t]; removed = true; }
+    });
+    var added = removed;
     r.unmapped.forEach(function (u) {
       if (!S.termMap[u.term] && u.candidates && u.candidates.length) { S.termMap[u.term] = [[u.candidates[0].ptEn, '제안']]; added = true; }
     });
