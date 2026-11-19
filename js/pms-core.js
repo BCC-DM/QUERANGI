@@ -130,27 +130,202 @@
       ln.text = clean(text);
       ln.chunks = chunks.map((c) => ({ x0: c.x0, x1: c.x1, text: clean(c.text) })).filter((c) => c.text);
     }
-    return lines.filter((l) => l.text);
+    const out = lines.filter((l) => l.text);
+    out.items = items;
+    return out;
+  }
+
+  /* 표 테두리(얇은 사각형) 읽기: pdf.js 연산 목록에서 사각형을 찾아 화면 좌표로 바꿈 */
+  async function pageEdges(page, pdfjsLib) {
+    const OPS = pdfjsLib.OPS, vp = page.getViewport({ scale: 1 });
+    let ops;
+    try { ops = await page.getOperatorList(); } catch (e) { return { H: [], V: [] }; }
+    const mul = (m, n) => [m[0] * n[0] + m[2] * n[1], m[1] * n[0] + m[3] * n[1], m[0] * n[2] + m[2] * n[3],
+      m[1] * n[2] + m[3] * n[3], m[0] * n[4] + m[2] * n[5] + m[4], m[1] * n[4] + m[3] * n[5] + m[5]];
+    let ctm = [1, 0, 0, 1, 0, 0]; const stack = [], H = [], V = [];
+    const pt = (x, y) => [ctm[0] * x + ctm[2] * y + ctm[4], vp.height - (ctm[1] * x + ctm[3] * y + ctm[5])];
+    const addRect = (x, y, w, h) => {
+      const a = pt(x, y), b = pt(x + w, y + h);
+      const x0 = Math.min(a[0], b[0]), x1 = Math.max(a[0], b[0]), y0 = Math.min(a[1], b[1]), y1 = Math.max(a[1], b[1]);
+      const W = x1 - x0, Hh = y1 - y0;
+      if (W <= 2.5 && Hh > 4) V.push({ x: (x0 + x1) / 2, y0, y1 });
+      else if (Hh <= 2.5 && W > 4) H.push({ y: (y0 + y1) / 2, x0, x1 });
+      else if (W > 4 && Hh > 4 && W < vp.width * 0.9) {        // 칸을 사각형 테두리로 그린 경우
+        H.push({ y: y0, x0, x1 }, { y: y1, x0, x1 }); V.push({ x: x0, y0, y1 }, { x: x1, y0, y1 });
+      }
+    };
+    for (let i = 0; i < ops.fnArray.length; i++) {
+      const fn = ops.fnArray[i], args = ops.argsArray[i];
+      if (fn === OPS.save) stack.push(ctm);
+      else if (fn === OPS.restore) ctm = stack.pop() || ctm;
+      else if (fn === OPS.transform) ctm = mul(ctm, args);
+      else if (fn === OPS.paintFormXObjectBegin) { stack.push(ctm); if (args[0]) ctm = mul(ctm, args[0]); }
+      else if (fn === OPS.paintFormXObjectEnd) ctm = stack.pop() || ctm;
+      else if (fn === OPS.constructPath) {
+        const sub = args[0], c = args[1]; let j = 0;
+        for (const o of sub) {
+          if (o === OPS.rectangle) { addRect(c[j], c[j + 1], c[j + 2], c[j + 3]); j += 4; }
+          else if (o === OPS.moveTo || o === OPS.lineTo) j += 2;
+          else if (o === OPS.curveTo) j += 6;
+          else if (o === OPS.curveTo2 || o === OPS.curveTo3) j += 4;
+        }
+      }
+    }
+    return { H, V };
   }
 
   async function readLabelPdf(pdfjsLib, bytes) {
     const doc = await pdfjsLib.getDocument({ data: bytes, verbosity: 0 }).promise;
-    const pages = [];
-    for (let p = 1; p <= doc.numPages; p++) pages.push(await pageLines(await doc.getPage(p)));
-    const lines = [];
-    for (const pl of pages) for (const l of pl) {
-      if (NOISE.some((re) => re.test(l.text))) continue;
-      if (lines.length && lines[lines.length - 1] === l.text) continue;   // 웹페이지 중복 제목
-      lines.push(l.text);
+    const pages = [], edges = [];
+    for (let p = 1; p <= doc.numPages; p++) {
+      const page = await doc.getPage(p);
+      pages.push(await pageLines(page));
+      edges.push(await pageEdges(page, pdfjsLib));
     }
+    const grids = pages.map((pl, i) => findGrid(pl, edges[i]));
+    const lines = [];
+    pages.forEach((pl, i) => {
+      const g = grids[i]; let marked = false;
+      for (const l of pl) {
+        if (g && l.y > g.top + 1 && l.y < g.bottom + 2) {          // 표 안의 줄은 '[표]' 한 줄로 바꿈
+          if (!marked) { lines.push('[표]'); marked = true; }
+          continue;
+        }
+        if (NOISE.some((re) => re.test(l.text))) continue;
+        if (lines.length && lines[lines.length - 1] === l.text) continue;   // 웹페이지 중복 제목
+        lines.push(l.text);
+      }
+    });
     const product = (lines.find((l) => /mg|밀리그램|정|캡슐|주|액/.test(l)) || lines[0] || '').slice(0, 60);
-    return { pages, lines, table: parseTable(pages, lines), product };
+    const table = grids.some(Boolean) ? parseGridTables(pages, grids, lines) : parseTable(pages, lines);
+    return { pages, lines, table, product };
+  }
+
+  // ------------------------------------------------------------------ 이상반응 표 (테두리 기준)
+  const uniqSorted = (vals, tol) => {
+    const out = [];
+    for (const v of [...vals].sort((a, b) => a - b)) if (!out.length || v - out[out.length - 1] > tol) out.push(v);
+    return out;
+  };
+
+  /* '기관계'로 시작하는 머리글이 있는 표의 칸 경계(xs, ys) 찾기 */
+  function findGrid(pl, edges) {
+    if (!edges.H.length || !edges.V.length) return null;
+    const head = pl.find((l) => l.chunks.length && /^기관계/.test(l.chunks[0].text));
+    if (!head) return null;
+    const above = edges.H.filter((e) => e.y <= head.y - 4 && e.x0 <= head.chunks[0].x0 + 2);
+    if (!above.length) return null;
+    const top = Math.max(...above.map((e) => e.y));
+    // 윗줄이 칸마다 따로 그려져 있으므로 같은 높이의 조각을 이어서 표 너비를 정함
+    const seg = edges.H.filter((e) => Math.abs(e.y - top) < 1.5).sort((a, b) => a.x0 - b.x0);
+    const start = seg.find((e) => e.x0 <= head.chunks[0].x0 + 2 && e.x1 >= head.chunks[0].x0 - 2) || seg[0];
+    const topLine = [start];
+    for (const e of seg) { const r = Math.max(...topLine.map((t) => t.x1)); if (e.x0 <= r + 3 && e.x1 > r) topLine.push(e); }
+    const left = Math.min(...topLine.map((e) => e.x0)) - 2, right = Math.max(...topLine.map((e) => e.x1)) + 2;
+    let bottom = top, grew = true;
+    while (grew) {                                            // 세로선을 이어 따라가며 표 아래 끝 찾기
+      grew = false;
+      for (const v of edges.V) {
+        if (v.x >= left && v.x <= right && v.y0 <= bottom + 2 && v.y1 > bottom + 0.5) { bottom = v.y1; grew = true; }
+      }
+    }
+    if (bottom - top < 20) return null;
+    const ys = uniqSorted(edges.H.filter((e) => e.y >= top - 1 && e.y <= bottom + 1 && e.x1 > left && e.x0 < right).map((e) => e.y), 1.5);
+    const xs = uniqSorted(edges.V.filter((v) => v.x >= left && v.x <= right && v.y1 > top && v.y0 < bottom).map((v) => v.x), 1.5);
+    if (ys.length < 3 || xs.length < 3) return null;
+    return { top, bottom, left, right, xs, ys };
+  }
+
+  /* 칸 안 글자 조각 -> 줄 단위 글 (공백 조각은 띄어쓰기로) */
+  function itemsToLines(items) {
+    const sorted = [...items].sort((a, b) => a.y - b.y || a.x0 - b.x0);
+    const rows = [];
+    for (const it of sorted) {
+      const last = rows[rows.length - 1];
+      if (last && Math.abs(last.y - it.y) <= 3) last.items.push(it); else rows.push({ y: it.y, items: [it] });
+    }
+    return rows.map((r) => {
+      r.items.sort((a, b) => a.x0 - b.x0);
+      let text = '', prevEnd = null, pending = false;
+      for (const it of r.items) {
+        if (!it.s.trim()) { pending = true; continue; }
+        text += (prevEnd !== null && (pending || it.x0 - prevEnd > 3) ? ' ' : '') + it.s;
+        prevEnd = it.x1; pending = false;
+      }
+      return clean(text);
+    }).filter(Boolean);
+  }
+
+  /* 칸 글 -> 용어 목록: 쉼표로 나누고, 쉼표 없이 줄이 바뀌면 한 용어로 이어 붙임 */
+  function cellTerms(lines) {
+    if (!lines.length) return [];
+    const hasComma = lines.some((l) => l.includes(','));
+    if (!hasComma) return lines.length === 1 ? [lines[0]] : lines;
+    let joined = '';
+    lines.forEach((l, i) => { joined += (i && !/,$/.test(joined) ? ' ' : (i ? ' ' : '')) + l; });
+    return joined.split(',').map(clean).filter(Boolean);
+  }
+
+  const HEADER_RE = /기관계|SOC|발현\s?빈도|흔함|흔하게|드물게|드묾|알려지지|빈도/;
+
+  function parseGridTables(pages, grids, lines) {
+    const notes = {}, terms = [];
+    let title = lines.find((l) => /^표 \d/.test(l) && l.includes('이상반응')) || '';
+    if (!title) {                                            // '표 1.' 제목이 없으면 표 바로 위 소항목을 제목으로
+      const k = lines.indexOf('[표]');
+      for (let i = k - 1; i >= 0 && k > 0; i--) {
+        if (RE_SUB.test(lines[i]) || RE_ITEM.test(lines[i])) { title = RE_SUB.test(lines[i]) ? lines[i] : ''; break; }
+      }
+    }
+    // 각주: 이상반응 표('[표]') 바로 아래에 붙은 '*' 줄만
+    const near = new Set();
+    lines.forEach((l, k) => { if (l === '[표]') for (let j = k + 1; j < lines.length && j <= k + 8; j++) { if (/^\*/.test(lines[j])) near.add(j); else if (near.size && !near.has(j - 1)) break; } });
+    for (let i = 0; i < lines.length; i++) {
+      if (!near.has(i)) continue;
+      const m = lines[i].match(/^(\*+)\s*:?\s*(.+)$/);
+      if (!m) continue;
+      let body = m[2];
+      while (i + 1 < lines.length && lines[i].length >= 55 && !/[.)]$/.test(lines[i])
+             && !/^\*/.test(lines[i + 1]) && !RE_SUB.test(lines[i + 1])) { body += lines[++i]; }
+      notes[m[1]] = `${m[1]}: ${body}`;
+    }
+    pages.forEach((pl, pi) => {
+      const g = grids[pi]; if (!g) return;
+      const nr = g.ys.length - 1, nc = g.xs.length - 1;
+      const cells = Array.from({ length: nr }, () => Array.from({ length: nc }, () => []));
+      for (const it of pl.items) {
+        const cx = (it.x0 + it.x1) / 2, cy = it.y - 3;
+        if (cy < g.top || cy > g.bottom || cx < g.left || cx > g.right) continue;
+        let r = g.ys.findIndex((y, k) => k < nr && cy >= y && cy < g.ys[k + 1]);
+        let c = g.xs.findIndex((x, k) => k < nc && cx >= x && cx < g.xs[k + 1]);
+        if (r < 0 || c < 0) continue;
+        cells[r][c].push(it);
+      }
+      const text = cells.map((row) => row.map((items) => itemsToLines(items)));
+      // 머리글 행: 빈도/기관계 말이 있는 행 (데이터 행이 시작되기 전까지)
+      let h = 0;
+      while (h < nr && text[h].some((ls) => HEADER_RE.test(ls.join(' '))) && h < 4) h++;
+      const freq = Array.from({ length: nc }, (_, c) => {
+        for (let r = h - 1; r >= 0; r--) { const t = text[r][c].join(' '); if (t) return t.split(' (')[0].replace(/\(.*$/, '').trim(); }
+        return '';
+      });
+      for (let r = h; r < nr; r++) {
+        const soc = clean(text[r][0].join(' '));
+        for (let c = 1; c < nc; c++) {
+          for (const t of cellTerms(text[r][c])) {
+            const mark = (t.match(/(\*+)$/) || [, ''])[1];
+            terms.push({ term: t.replace(/\*+$/, '').trim(), shown: t, mark, soc, freq: freq[c] });
+          }
+        }
+      }
+    });
+    return { title, terms, notes };
   }
 
   // ------------------------------------------------------------------ 이상반응 표
   const RE_ITEM = /^(\d{1,2})\.\s*(\S.*)$/;
   const RE_SUB = /^(\d{1,2})\)\s*(\S.*)$/;
-  const RE_BULLET = /^[•·\-]\s*/;
+  const RE_BULLET = /^(?:[•·\-]|\(\d{1,2}\))\s*/;   // •, -, (1) 목록
 
   function parseTable(pages, lines) {
     let title = '';
@@ -240,7 +415,7 @@
       if (ln.startsWith('용법 · 용량') || ln === '용법·용량') { flush(); block = '용법용량'; item = sub = head = lead = ''; continue; }
       if (ln.startsWith('사용상의 주의사항')) { flush(); block = '주의사항'; item = sub = head = lead = ''; continue; }
       if (block === null) continue;
-      if (/^표 \d/.test(ln)) { flush(); inTable = true; continue; }
+      if (/^표 \d/.test(ln) || ln === '[표]') { flush(); inTable = true; continue; }
       if (inTable) { if (RE_SUB.test(ln) || RE_ITEM.test(ln)) inTable = false; else continue; }
       if (!cont) {
         if (RE_ITEM.test(ln) && ln.length < 40) { flush(); item = ln; sub = head = lead = ''; continue; }
@@ -261,7 +436,7 @@
   }
 
   // ------------------------------------------------------------------ 용어 찾기
-  const KR_STOP = new Set(['지침', '자세', '신장', '주사', '검사', '입원', '치료', '투여', '전이', '발적']);
+  const KR_STOP = new Set(['지침', '자세', '신장', '주사', '검사', '입원', '치료', '투여', '전이', '발적', '이루', '의존', '손상', '분비물']);
   const START_OK = new Set([' ', '(', ',', '/', '·', '‘', '’', "'", '"', '[']);
   const PROSE_EXCLUDE_SOC = new Set(['10042613', '10041244']);   // 시술, 사회 환경
   const GENERIC_PT = new Set(['10067484', '10061623', '10060933', '10013710', '10022891']);
@@ -311,7 +486,9 @@
   }
 
   const WEAK_PATTERNS = [/연구되지 않았/, /확립되지 않았/, /포함되지 않았/, /병력이 있는/, /진단된 경우/,
-    /위험이 있/, /예방/, /환자에게는.*피해야/, /환자에 대한 안전성/];
+    /위험이 있/, /예방/, /환자에게는.*피해야/, /환자에 대한 안전성/,
+    /있는 환자/, /가진 환자/, /손상된 환자/, /환자를 대상으로/, /환자에게(는)? 주의/, /주의하여 사용/,
+    /환자에게(는)? (이 약을 )?투여하지/, /환자$/];
   const rfind = (t, sub, end) => (end - sub.length < 0 ? -1 : t.lastIndexOf(sub, end - sub.length));
   function sentenceOf(text, found) {
     const i = text.indexOf(found);
@@ -343,7 +520,7 @@
     if (scope.has('이상반응 표')) {
       for (const t of terms) {
         const note = t.mark ? notes[t.mark] : null;
-        const ref = `${secItem}\n${title}\n- ${t.shown}` + (note ? `\n${note}` : '');
+        const ref = [secItem, title, `- ${t.shown}`].filter(Boolean).join('\n') + (note ? `\n${note}` : '');
         const row = { term: t.term, section: '이상반응 표', rank: 1, weak: false,
           detail: `${t.soc} / ${t.freq}`, ref, how: '표' };
         const m = mapTerm(t.term);
