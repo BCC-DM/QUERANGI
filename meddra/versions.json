@@ -1,0 +1,16 @@
+{
+  "versions": [
+    {
+      "version": "29.0",
+      "file": "meddra_29.0.json",
+      "builtAt": "2026-11-19",
+      "bytes": 9939862
+    },
+    {
+      "version": "29.1",
+      "file": "meddra_29.1.json",
+      "builtAt": "2026-11-19",
+      "bytes": 9990716
+    }
+  ]
+}

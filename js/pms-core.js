@@ -56,6 +56,19 @@
     return md;
   }
 
+  /* 사전 파일(쿼랑이 meddra/*.json)용으로 필요한 칸만 남기기. buildMedDRA가 그대로 읽을 수 있는 형식 */
+  function slimMedDRA(version, files) {
+    const keep = (text, cols, width) => text.split(/\r?\n/).filter(Boolean).map((l) => {
+      const r = l.split('$'); const o = new Array(width).fill('');
+      cols.forEach((c) => { o[c] = r[c] || ''; }); return o.join('$');
+    }).join('\n');
+    return {
+      format: 'querangi-meddra-1', version, builtAt: new Date().toISOString().slice(0, 10),
+      enPt: keep(files.enPt, [0, 1], 2), krPt: keep(files.krPt, [0, 1], 2),
+      krLlt: keep(files.krLlt, [0, 1, 2, 9], 10), enMdhier: keep(files.enMdhier, [0, 1, 3, 5, 11], 12),
+    };
+  }
+
   function suggest(md, term, n) {
     const q = norm(term);
     const variants = new Set([q, q.replace(/수치/g, ''), q.replace(/혈중/g, '혈액'),
@@ -451,6 +464,6 @@
   }
   const cmp = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1; return 0; };
 
-  root.PMS = { buildMedDRA, readLabelPdf, parseTable, buildUnits, spotTerms, extract, labelTerms,
+  root.PMS = { buildMedDRA, slimMedDRA, readLabelPdf, parseTable, buildUnits, spotTerms, extract, labelTerms,
     judgeRow, parseTermMapCsv, termMapToCsv, SECTION_RANK, DEFAULT_SCOPE, norm };
 })(typeof window !== 'undefined' ? window : globalThis);

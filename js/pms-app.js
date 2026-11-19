@@ -40,7 +40,7 @@
 
   // ------------------------------------------------------------ 상태
   var S = {
-    versions: [], mdCache: {}, sheet: null, label: null, termMap: {},
+    versions: [], catalog: [], mdMode: 'auto', adminFiles: [], mdCache: {}, sheet: null, label: null, termMap: {},
     scope: PMS.DEFAULT_SCOPE.slice(), view: null, results: [], ran: false, filter: 'all',
   };
 
@@ -52,22 +52,72 @@
     zone.addEventListener('drop', function (ev) { var f = Array.prototype.slice.call(ev.dataTransfer.files); if (f.length) onFiles(f); });
   }
 
-  // ------------------------------------------------------------ 1. MedDRA
-  async function refreshMd() {
-    try { S.versions = ((await DB.keys('meddra')) || []).map(String).sort(); } catch (e) { S.versions = []; }
-    if (!S.versions.length) { $('mdInfo').classList.add('hidden'); updateRun(); return; }
-    var parts = [];
-    for (var i = 0; i < S.versions.length; i++) {
-      var rec = await DB.get('meddra', S.versions[i]);
-      parts.push('v' + esc(S.versions[i]) + ' (' + esc((rec && rec.savedAt) || '') + ' 등록)');
+  // ------------------------------------------------------------ 1. MedDRA (쿼랑이 meddra/ 폴더)
+  var MODE_KEY = 'pms.meddraMode';
+  var vcmp = function (a, b) { var x = a.split('.').map(Number), y = b.split('.').map(Number); return x[0] - y[0] || x[1] - y[1]; };
+
+  async function loadCatalog() {
+    var server = [], msg = '';
+    try {
+      var res = await fetch('meddra/versions.json', { cache: 'no-cache' });
+      if (!res.ok) throw new Error(res.status);
+      server = ((await res.json()).versions || []).map(function (v) { return { version: String(v.version), file: v.file, builtAt: v.builtAt, bytes: v.bytes, local: false }; });
+    } catch (e) { msg = '쿼랑이의 MedDRA 목록(meddra/versions.json)을 불러오지 못했어요.'; }
+    // 이 브라우저에만 추가한 버전(관리자 기능으로 만든 것)
+    var keys = [];
+    try { keys = ((await DB.keys('meddra')) || []).map(String); } catch (e) {}
+    for (var i = 0; i < keys.length; i++) {
+      if (server.some(function (x) { return x.version === keys[i]; })) continue;
+      var rec = await DB.get('meddra', keys[i]);
+      if (rec && rec.local) server.push({ version: keys[i], builtAt: rec.builtAt, local: true });
     }
-    $('mdInfo').innerHTML = '<span><b>MedDRA 사전 사용 중</b></span><span class="muted">' + parts.join(' · ') + ' · 영문 + 한글</span>';
-    $('mdInfo').classList.remove('hidden');
-    $('dropMd').innerHTML = '다른 버전을 추가하거나 바꾸려면 <b>클릭해서 MedDRA 폴더 선택</b>';
+    S.catalog = server.sort(function (a, b) { return vcmp(a.version, b.version); });
+    S.versions = S.catalog.map(function (c) { return c.version; });
+    var mode = localStorage.getItem(MODE_KEY) || 'auto';
+    S.mdMode = mode === 'auto' || S.versions.indexOf(mode) >= 0 ? mode : 'auto';
+    $('mdSel').innerHTML = '<option value="auto">코딩시트 DICVER 따르기 (권장)</option>' + S.catalog.map(function (c) {
+      return '<option value="' + esc(c.version) + '">MedDRA v' + esc(c.version) + '로 모두 비교' + (c.local ? ' (이 PC에만 있음)' : '') + '</option>';
+    }).join('');
+    $('mdSel').value = S.mdMode;
+    $('mdMsg').innerHTML = msg ? '<span style="color:var(--err)">' + esc(msg) + '</span>' : '';
+    await renderMdInfo();
     updateRun();
   }
 
-  async function registerMd(files) {
+  async function renderMdInfo() {
+    if (!S.catalog.length) { $('mdInfo').classList.add('hidden'); return; }
+    var parts = [];
+    for (var i = 0; i < S.catalog.length; i++) {
+      var c = S.catalog[i], rec = null;
+      try { rec = await DB.get('meddra', c.version); } catch (e) {}
+      var cached = rec && (c.local || rec.builtAt === c.builtAt);
+      parts.push('v' + esc(c.version) + ' ' + (cached ? '(이 PC에 저장됨)' : '(처음 쓸 때 내려받아요)'));
+    }
+    $('mdInfo').innerHTML = '<span><b>쿼랑이 MedDRA</b></span><span class="muted">' + parts.join(' · ') + ' · 영문 + 한글</span>';
+    $('mdInfo').classList.remove('hidden');
+  }
+
+  async function getMd(v) {
+    if (S.mdCache[v]) return S.mdCache[v];
+    var c = S.catalog.filter(function (x) { return x.version === v; })[0];
+    if (!c) throw new Error('MedDRA v' + v + ' 사전이 쿼랑이에 없어요.');
+    var rec = null;
+    try { rec = await DB.get('meddra', v); } catch (e) {}
+    if (!rec || (!c.local && rec.builtAt !== c.builtAt)) {
+      busy('MedDRA v' + v + ' 내려받는 중… (처음 한 번)'); await tick();
+      var res = await fetch('meddra/' + c.file, { cache: 'no-cache' });
+      if (!res.ok) throw new Error('MedDRA v' + v + ' 사전 파일을 내려받지 못했어요 (' + res.status + ').');
+      rec = await res.json();
+      try { await DB.put('meddra', v, rec); } catch (e) {}
+      renderMdInfo();
+    }
+    busy('MedDRA v' + v + ' 준비 중…'); await tick();
+    S.mdCache[v] = PMS.buildMedDRA(v, rec);
+    return S.mdCache[v];
+  }
+
+  /* 관리자: MedDRA 폴더 -> 쿼랑이 사전 파일 만들기 */
+  async function buildFromFolder(files) {
     var byDir = {};
     files.forEach(function (f) {
       var rel = f.webkitRelativePath || f.name, dir = rel.slice(0, rel.lastIndexOf('/') + 1);
@@ -84,30 +134,38 @@
       if (lang.indexOf('english') === 0 && fs['pt.asc'] && fs['mdhier.asc']) found[v].en = fs;
       if (lang.indexOf('korean') === 0 && fs['pt.asc'] && fs['llt.asc']) found[v].kr = fs;
     }
-    var saved = [], partial = [];
+    var made = [], partial = [];
     for (var ver in found) {
       var p = found[ver];
       if (!p.en || !p.kr) { partial.push('v' + ver + '(' + (p.en ? '한글' : '영문') + ' 없음)'); continue; }
-      busy('MedDRA v' + ver + ' 저장 중…'); await tick();
-      await DB.put('meddra', ver, {
-        version: ver, savedAt: new Date().toISOString().slice(0, 10),
-        enPt: await p.en['pt.asc'].text(), enMdhier: await p.en['mdhier.asc'].text(),
-        krPt: await p.kr['pt.asc'].text(), krLlt: await p.kr['llt.asc'].text(),
-      });
-      delete S.mdCache[ver]; saved.push('v' + ver);
+      busy('MedDRA v' + ver + ' 사전 파일 만드는 중…'); await tick();
+      var bundle = PMS.slimMedDRA(ver, { enPt: await p.en['pt.asc'].text(), enMdhier: await p.en['mdhier.asc'].text(),
+        krPt: await p.kr['pt.asc'].text(), krLlt: await p.kr['llt.asc'].text() });
+      var text = JSON.stringify(bundle);
+      var onServer = S.catalog.some(function (c) { return c.version === ver && !c.local; });
+      try { await DB.put('meddra', ver, Object.assign({}, bundle, { local: !onServer })); } catch (e) {}
+      delete S.mdCache[ver];
+      made.push({ version: ver, file: 'meddra_' + ver + '.json', builtAt: bundle.builtAt, bytes: new Blob([text]).size, text: text });
     }
     idle();
-    $('mdMsg').innerHTML = (saved.length ? '<span style="color:var(--ok)">✓ ' + saved.join(', ') + ' 저장했어요.</span> ' : '') +
-      (partial.length ? '<span style="color:var(--err)">' + partial.join(', ') + ' — 영문과 한글이 모두 있어야 해요.</span>' : '') +
-      (!saved.length && !partial.length ? '<span style="color:var(--err)">MedDRA ASCII 파일(meddra_release.asc가 있는 폴더)을 찾지 못했어요. MedDRA 폴더를 선택해 주세요.</span>' : '');
-    await refreshMd(); prepare();
-  }
-
-  async function getMd(v) {
-    if (S.mdCache[v]) return S.mdCache[v];
-    busy('MedDRA v' + v + ' 불러오는 중…'); await tick();
-    S.mdCache[v] = PMS.buildMedDRA(v, await DB.get('meddra', v));
-    return S.mdCache[v];
+    if (!made.length) {
+      $('mdAdminMsg').innerHTML = '<span style="color:var(--err)">' + (partial.length ? esc(partial.join(', ')) + ' — 영문과 한글이 모두 있어야 해요.' :
+        'MedDRA ASCII 파일(meddra_release.asc가 있는 폴더)을 찾지 못했어요.') + '</span>';
+      return;
+    }
+    // 업로드할 versions.json (쿼랑이 목록 + 새로 만든 버전)
+    var list = S.catalog.filter(function (c) { return !c.local && !made.some(function (m) { return m.version === c.version; }); })
+      .map(function (c) { return { version: c.version, file: c.file, builtAt: c.builtAt, bytes: c.bytes }; })
+      .concat(made.map(function (m) { return { version: m.version, file: m.file, builtAt: m.builtAt, bytes: m.bytes }; }))
+      .sort(function (a, b) { return vcmp(a.version, b.version); });
+    S.adminFiles = made.map(function (m) { return { name: m.file, text: m.text, type: 'application/json' }; })
+      .concat([{ name: 'versions.json', text: JSON.stringify({ versions: list }, null, 2), type: 'application/json' }]);
+    $('mdAdminMsg').innerHTML = '<div class="dictInfo" style="flex-direction:column;align-items:flex-start;gap:8px"><b>✓ ' +
+      made.map(function (m) { return 'v' + esc(m.version); }).join(', ') + ' 사전 파일을 만들었어요. 이 브라우저에서는 바로 쓸 수 있어요.</b>' +
+      '<span class="muted">아래 파일을 내려받아 GitHub 저장소의 <b>meddra</b> 폴더에 올리면(같은 이름은 덮어쓰기) 모든 팀원이 쓸 수 있어요.</span><div class="row" style="margin:0">' +
+      S.adminFiles.map(function (f, i) { return '<button class="ghost" data-admin="' + i + '">' + esc(f.name) + ' 내려받기</button>'; }).join('') + '</div>' +
+      (partial.length ? '<span style="color:var(--err)">' + esc(partial.join(', ')) + '는 영문·한글이 모두 있어야 해요.</span>' : '') + '</div>';
+    await loadCatalog(); prepare();
   }
 
   // ------------------------------------------------------------ 2. 파일
@@ -203,6 +261,7 @@
   var ready = function () { return S.versions.length && S.label && !S.label.error; };
   function sheetVersions() {
     var latest = S.versions[S.versions.length - 1];
+    if (S.mdMode && S.mdMode !== 'auto') return { main: S.mdMode, all: [S.mdMode], latest: S.mdMode, fixed: true };
     if (!S.sheet || S.sheet.error) return { main: latest, all: [latest], latest: latest };
     var cnt = {};
     S.sheet.rows.forEach(function (r) { var v = r.ver || latest; cnt[v] = (cnt[v] || 0) + 1; });
@@ -215,7 +274,8 @@
     if (!ready()) { renderMap(); return; }
     var vs = sheetVersions();
     if (S.versions.indexOf(vs.main) < 0) { renderMap(); return; }
-    var md = await getMd(vs.main);
+    var md;
+    try { md = await getMd(vs.main); } catch (e) { idle(); $('mdMsg').innerHTML = '<span style="color:var(--err)">' + esc(e.message) + '</span>'; return; }
     var r = PMS.labelTerms(S.label, md, S.termMap, S.scope);
     idle();
     var added = false;
@@ -324,22 +384,24 @@
       var vs = sheetVersions(); missing = vs.all.filter(function (v) { return S.versions.indexOf(v) < 0; });
     }
     $('run').disabled = !(S.versions.length && okSheet && okPdf && !missing.length);
-    $('runMsg').innerHTML = !S.versions.length ? '먼저 MedDRA 사전을 등록해 주세요.'
+    $('runMsg').innerHTML = !S.versions.length ? 'MedDRA 사전 목록을 불러오지 못했어요. 인터넷 연결을 확인하거나 1번 관리자 기능으로 추가해 주세요.'
       : !okSheet ? '코딩시트를 넣어 주세요.' : !okPdf ? '허가사항 PDF를 넣어 주세요.'
-      : missing.length ? '<span style="color:var(--err)">코딩시트가 MedDRA v' + esc(missing.join(', v')) + '를 쓰는데 등록된 사전이 없어요. 1번에서 해당 버전을 등록해 주세요.</span>'
-      : S.ran ? '점검을 마쳤어요. 매핑이나 반영 범위를 바꾸면 결과가 바로 다시 계산돼요.' : '준비됐어요. 이상사례 ' + fmt(S.sheet.rows.length) + '건';
+      : missing.length ? '<span style="color:var(--err)">코딩시트가 MedDRA v' + esc(missing.join(', v')) + '를 쓰는데 쿼랑이에 없는 버전이에요. 1번에서 비교할 버전을 고르거나, 관리자 기능으로 추가해 주세요.</span>'
+      : S.ran ? (sheetVersions().fixed ? 'MedDRA v' + S.mdMode + '로 비교했어요. ' : '') + '점검을 마쳤어요. 매핑이나 반영 범위를 바꾸면 결과가 바로 다시 계산돼요.' : '준비됐어요. 이상사례 ' + fmt(S.sheet.rows.length) + '건';
   }
 
   async function run() {
     if ($('run').disabled) return;
     var vs = sheetVersions(), byVer = {};
-    for (var i = 0; i < vs.all.length; i++) {
-      var md = await getMd(vs.all[i]);
-      byVer[vs.all[i]] = { md: md, terms: PMS.labelTerms(S.label, md, S.termMap, S.scope).terms };
-    }
+    try {
+      for (var i = 0; i < vs.all.length; i++) {
+        var md = await getMd(vs.all[i]);
+        byVer[vs.all[i]] = { md: md, terms: PMS.labelTerms(S.label, md, S.termMap, S.scope).terms };
+      }
+    } catch (e) { idle(); $('runMsg').innerHTML = '<span style="color:var(--err)">' + esc(e.message) + '</span>'; return; }
     idle();
     S.results = S.sheet.rows.map(function (r) {
-      var b = byVer[r.ver || vs.latest], j = PMS.judgeRow(b.md, b.terms, r.pt, r.special);
+      var b = byVer[vs.fixed ? vs.main : (r.ver || vs.latest)], j = PMS.judgeRow(b.md, b.terms, r.pt, r.special);
       return Object.assign({}, r, { expt: j[0], ref: j[1] });
     });
     S.ran = true;
@@ -417,7 +479,17 @@
   }
 
   // ------------------------------------------------------------ 연결
-  dropZone($('dropMd'), $('pickMd'), registerMd);
+  dropZone($('dropMd'), $('pickMd'), buildFromFolder);
+  $('mdSel').onchange = function () {
+    S.mdMode = $('mdSel').value;
+    try { localStorage.setItem(MODE_KEY, S.mdMode); } catch (e) {}
+    S.view = null; prepare();
+  };
+  $('mdAdminMsg').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-admin]'); if (!b) return;
+    var f = S.adminFiles[Number(b.dataset.admin)];
+    saveBlob(new Blob([f.text], { type: f.type }), f.name);
+  });
   dropZone($('dropSheet'), $('pickSheet'), loadSheet);
   dropZone($('dropPdf'), $('pickPdf'), loadPdf);
   renderScope();
@@ -447,7 +519,5 @@
     var td = m.parentElement, full = td.querySelector('.full'), open = full.classList.contains('hidden');
     full.classList.toggle('hidden', !open); td.querySelector('.clip').classList.toggle('hidden', open); m.textContent = open ? '접기' : '더 보기';
   });
-  refreshMd().catch(function () {
-    $('mdMsg').innerHTML = '<span style="color:var(--err)">이 브라우저에서 저장소(IndexedDB)를 쓸 수 없어요. Chrome 또는 Edge로 열어 주세요.</span>';
-  });
+  loadCatalog().then(prepare);
 })();
