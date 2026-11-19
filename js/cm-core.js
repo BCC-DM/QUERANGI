@@ -253,9 +253,34 @@
       .map(function (k) { return k + ' ' + obj[k] + '명(' + pct(obj[k], tot) + ')'; }).join(', ');
   }
 
+  // 이슈 리스트 엑셀에서 노란색으로 칠할 칸 (trt=CMTRT, dose=CMDOSE, unit=CMDOSU, freq=CMFREQ, route=CMROUTE)
+  function fieldsFor(rule, msg) {
+    switch (rule) {
+      case 'STRUCT-01': return ['dose'];
+      case 'STRUCT-02': {
+        var f = [];
+        if (msg.indexOf('용량') >= 0) f.push('dose');
+        if (msg.indexOf('단위') >= 0) f.push('unit');
+        if (msg.indexOf('빈도') >= 0) f.push('freq');
+        if (msg.indexOf('경로') >= 0) f.push('route');
+        return f;
+      }
+      case 'STRUCT-03': return ['unit'];
+      case 'STRUCT-04': return msg.indexOf('빈도') === 0 ? ['freq'] : ['route'];
+      case 'FORM-01': case 'FORM-02': return ['trt', 'unit'];
+      case 'FORM-03': return ['trt', 'route'];
+      case 'FORM-04': return ['trt', 'unit'];
+      case 'UNIT-01': case 'UNIT-02': case 'UNIT-03': case 'UNIT-04': return ['unit', 'route'];
+      case 'DOSE-01': case 'DICT-DOSE': case 'DICT-UNIT': return ['dose', 'unit'];
+      case 'DICT-FREQ': return ['freq'];
+      case 'DICT-ROUTE': return ['route'];
+      default: return rule.indexOf('NAME-') === 0 ? ['trt', 'route'] : [];
+    }
+  }
+
   function checkRow(r, dic) {
     var issues = [], P = dic.products, minSubj = dic.meta.params.minSubj, cut = dic.meta.params.rareCut;
-    function add(level, rule, msg, ref) { issues.push({ level: level, rule: rule, msg: msg, ref: ref || '' }); }
+    function add(level, rule, msg, ref) { issues.push({ level: level, rule: rule, msg: msg, ref: ref || '', fields: fieldsFor(rule, msg) }); }
     var raw = String(r.rawDose == null ? '' : r.rawDose).trim(), doseUK = /^(UK|UNK|UNKNOWN)$/i.test(raw);
     var doseBad = false;
 
@@ -282,6 +307,47 @@
     if (fm && fm.form === 'inj' && r.route && !routeBad && ['IV', 'IM', 'SC'].indexOf(r.route) < 0) {
       add('오류', 'FORM-03', '제품명이 "' + fm.word + '"(으)로 끝나는데 경로가 IV·IM·SC가 아니에요: "' + r.rawRoute + '"', '주사제는 IV, IM, SC 중 하나로 입력');
       routeBad = true;
+    }
+
+    // 11-19 추가: 단위·제품명과 경로가 모순되는 경우
+    if (fm && (fm.form === 'tab' || fm.form === 'cap') && ['ml', 'drop', 'puff'].indexOf(r.unit) >= 0)
+      add('오류', 'FORM-04', '제품명이 "' + fm.word + '"(으)로 끝나는 고형제인데 단위가 액체·분무 단위예요: "' + r.rawUnit + '"', '정제·캡슐은 tab, cap 또는 mg 등으로 입력');
+    var rt = (r.route && !routeBad) ? r.route : null;
+    function routeErr(rule, level, msg, ref) { add(level, rule, msg, ref); routeBad = true; rt = null; }
+    if (rt) {
+      var TAB_OK = ['PO', 'SUBLINGUAL', 'VAGINAL'], CAP_OK = ['PO', 'VAGINAL', 'INHALATION'];
+      if (r.unit === 'tab' && TAB_OK.indexOf(rt) < 0)
+        routeErr('UNIT-01', '오류', '단위가 정(tab)인데 경로가 ' + r.rawRoute + '이에요', 'tab은 PO, SUBLINGUAL(설하), VAGINAL(질정)만 가능');
+      else if (r.unit === 'cap' && CAP_OK.indexOf(rt) < 0)
+        routeErr('UNIT-01', '오류', '단위가 캡슐(cap)인데 경로가 ' + r.rawRoute + '이에요', 'cap은 PO, VAGINAL(질캡슐), INHALATION(흡입용 캡슐)만 가능');
+      else if (['amp', 'vial', 'syringe', 'bag'].indexOf(r.unit) >= 0 && (rt === 'PO' || rt === 'TOPICAL'))
+        routeErr('UNIT-02', '오류', '주사 단위(' + r.rawUnit + ')인데 경로가 ' + r.rawRoute + '이에요', '주사 단위는 IV, IM, SC 등 주사·흡입·세척 경로로 입력');
+      else if (r.unit === 'puff' && ['INHALATION', 'NASAL', 'SUBLINGUAL'].indexOf(rt) < 0)
+        routeErr('UNIT-03', '오류', '단위가 puff(흡입·분무)인데 경로가 ' + r.rawRoute + '이에요', 'puff는 INHALATION, NASAL, SUBLINGUAL(설하 스프레이)만 가능');
+      else if (r.unit === 'drop' && ['IV', 'IM', 'SC'].indexOf(rt) >= 0)
+        routeErr('UNIT-04', '오류', '단위가 drop인데 경로가 ' + r.rawRoute + '이에요', 'drop은 OPHTHALMIC, OTIC, NASAL, PO(경구 드롭) 등으로 입력');
+    }
+    if (rt && r.raw) {
+      var nm = String(r.raw);
+      var isEye = /(점안|안약|안연고|eye ?drop|eye ?oint|opht)/i.test(nm);
+      var isNasal = /(나잘|nasal|비강|비액)/i.test(nm);
+      var isInj = /(주사|inj)/i.test(nm) || (fm && fm.form === 'inj');
+      if (isEye && rt !== 'OPHTHALMIC')
+        routeErr('NAME-01', '오류', '점안제인데 경로가 ' + r.rawRoute + '이에요', '점안제는 OPHTHALMIC으로 입력');
+      else if (isNasal && rt !== 'NASAL')
+        routeErr('NAME-02', '확인 필요', '비강 제품(나잘·nasal)인데 경로가 ' + r.rawRoute + '이에요', '비강 스프레이는 보통 NASAL로 입력');
+      else if (!isNasal && /(흡입|할러|엘립타|터부헬러|디스커스|네뷸|레스퓰|inhal|ellipta|handihaler|respimat|turbuhaler|diskus|nebul)/i.test(nm) && rt !== 'INHALATION')
+        routeErr('NAME-03', '오류', '흡입제인데 경로가 ' + r.rawRoute + '이에요', '흡입제는 INHALATION으로 입력');
+      else if (/(패취|패치|플라스타|카타플라스마|patch|plaster)/i.test(nm) && ['TRANSDERMAL', 'TOPICAL'].indexOf(rt) < 0)
+        routeErr('NAME-04', '오류', '패취제인데 경로가 ' + r.rawRoute + '이에요', '패취제는 TRANSDERMAL 또는 TOPICAL로 입력');
+      else if (!isEye && !isNasal && !isInj && /(시럽|syrup|현탁|suspension|내복액)/i.test(nm) && rt !== 'PO')
+        routeErr('NAME-05', '오류', '시럽·현탁액(경구 액제)인데 경로가 ' + r.rawRoute + '이에요', '경구 액제는 PO로 입력');
+      else if (!isEye && /(연고|크림|로션|cream|lotion|ointment|oint)/i.test(nm) && rt === 'PO')
+        routeErr('NAME-06', '오류', '연고·크림·로션(외용제)인데 경로가 PO예요', '외용제는 TOPICAL 등으로 입력');
+      else if (/(좌제|좌약|suppos)/i.test(nm) && ['RECTAL', 'VAGINAL'].indexOf(rt) < 0)
+        routeErr('NAME-07', '오류', '좌제인데 경로가 ' + r.rawRoute + '이에요', '좌제는 RECTAL 또는 VAGINAL로 입력');
+      else if (/(질정|(^|[^연])질캡슐|질연질캡슐|질좌|질크림|vaginal)/i.test(nm) && rt !== 'VAGINAL')
+        routeErr('NAME-08', '오류', '질 제품인데 경로가 ' + r.rawRoute + '이에요', '질정·질캡슐은 VAGINAL로 입력');
     }
 
     // 제품 찾기
