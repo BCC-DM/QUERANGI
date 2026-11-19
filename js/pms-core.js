@@ -266,6 +266,10 @@
     return joined.split(',').map(clean).filter(Boolean);
   }
 
+  // 발현 빈도 구분은 질환이 아니므로 허가사항 용어에서 항상 뺌
+  const FREQ_WORD = /^(매우\s*)?(흔하게|흔함|흔하지\s*않게|흔하지\s*않음|드물게|드묾|드뭄)$|^알려지지\s*않음$|^빈도\s*불명$|^기관계/;
+  const isFreqWord = (t) => FREQ_WORD.test(String(t).replace(/\*+$/, '').replace(/\s*\(.*\)$/, '').trim());
+
   const HEADER_RE = /기관계|SOC|발현\s?빈도|흔함|흔하게|드물게|드묾|알려지지|빈도/;
 
   function parseGridTables(pages, grids, lines) {
@@ -313,6 +317,7 @@
         const soc = clean(text[r][0].join(' '));
         for (let c = 1; c < nc; c++) {
           for (const t of cellTerms(text[r][c])) {
+            if (isFreqWord(t)) continue;
             const mark = (t.match(/(\*+)$/) || [, ''])[1];
             terms.push({ term: t.replace(/\*+$/, '').trim(), shown: t, mark, soc, freq: freq[c] });
           }
@@ -378,7 +383,7 @@
         for (let ci = 1; ci < row.length; ci++) {
           for (let t of row[ci].join('\n').split(/[,\n]/)) {
             t = clean(t);
-            if (!t) continue;
+            if (!t || isFreqWord(t)) continue;
             const mark = (t.match(/(\*+)$/) || [, ''])[1];
             terms.push({ term: t.replace(/\*+$/, '').trim(), shown: t, mark, soc, freq: freq[ci] });
           }
@@ -641,6 +646,6 @@
   }
   const cmp = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1; return 0; };
 
-  root.PMS = { buildMedDRA, slimMedDRA, readLabelPdf, parseTable, buildUnits, spotTerms, extract, labelTerms,
+  root.PMS = { isFreqWord, buildMedDRA, slimMedDRA, readLabelPdf, parseTable, buildUnits, spotTerms, extract, labelTerms,
     judgeRow, parseTermMapCsv, termMapToCsv, SECTION_RANK, DEFAULT_SCOPE, norm };
 })(typeof window !== 'undefined' ? window : globalThis);

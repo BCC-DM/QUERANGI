@@ -279,12 +279,14 @@
     var r = PMS.labelTerms(S.label, md, S.termMap, S.scope);
     idle();
     // 저장된 매핑표 정리: 빈도 단어, 그리고 이제 나오지 않는 '제안' 항목은 지움 (확정한 항목은 유지)
-    var now = {}, removed = false;
-    r.unmapped.forEach(function (u) { now[u.term] = 1; });
+    //  - 확정한 항목도 이 허가사항에서 더 이상 나오지 않는 용어면 지움 (예: 예전에 잘못 쪼개진 '가성-폐쇄')
+    var now = {}, inLabel = {}, removed = false;
+    r.unmapped.forEach(function (u) { now[u.term] = 1; inLabel[u.term] = 1; });
+    r.terms.forEach(function (t) { if (t.section === '이상반응 표') inLabel[t.term] = 1; });
     Object.keys(S.termMap).forEach(function (t) {
       var rows = S.termMap[t] || [];
       var allProposed = rows.every(function (x) { return x[1] !== '확정'; });
-      if (PMS.isFreqWord(t) || (allProposed && !now[t])) { delete S.termMap[t]; removed = true; }
+      if (PMS.isFreqWord(t) || (allProposed && !now[t]) || !inLabel[t]) { delete S.termMap[t]; removed = true; }
     });
     var added = removed;
     r.unmapped.forEach(function (u) {
