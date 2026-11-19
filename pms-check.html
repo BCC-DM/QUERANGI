@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Expectedness 점검 · 쿼랑이</title>
+<link rel="icon" href="img/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="stylesheet" href="css/site.css">
+<style>
+  :root{--bg:#f2f7f0;--card:#fff;--ink:#1f2d27;--sub:#5a6b62;--line:#d9e6da;--accent:#007049;--accent-soft:#e3f1e6;--ok:#1f8a4c;--ok-soft:#e5f4ec;--warn:#b5590f;--warn-soft:#fcefe2;--err:#c0352b;--err-soft:#fde8e6;--na:#6b7280;--na-soft:#eef0f3}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+  a{color:var(--accent)}
+  main{max-width:1180px;margin:0 auto;padding:32px 24px 64px}
+  h1{font-size:26px;margin:0 0 6px}
+  .lead{color:var(--sub);margin:0 0 28px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px 24px;margin-bottom:18px}
+  .step h2{font-size:17px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .num{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;align-items:center;justify-content:center}
+  .hint{color:var(--sub);font-size:14px;margin:0 0 14px}
+  .drop{border:2px dashed #a9c7b0;border-radius:10px;padding:24px;text-align:center;color:var(--sub);cursor:pointer;transition:.15s}
+  .drop.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .drop b{color:var(--accent)}
+  .dictInfo{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--ok-soft);border-radius:10px;padding:12px 16px;margin-bottom:12px}
+  .dictInfo b{color:var(--ok)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--sub);font-weight:600;background:#f6faf5;position:sticky;top:0}
+  .tag{display:inline-block;border-radius:6px;padding:2px 8px;font-size:12.5px;font-weight:600;white-space:nowrap}
+  .t-오류{background:var(--err-soft);color:var(--err)}
+  .t-확인{background:var(--warn-soft);color:var(--warn)}
+  .t-판정{background:var(--na-soft);color:var(--na)}
+  .t-정상{background:var(--ok-soft);color:var(--ok)}
+  .t-제외{background:var(--warn-soft);color:var(--warn)}
+  .t-반영{background:var(--ok-soft);color:var(--ok)} .t-확인필요{background:var(--warn-soft);color:var(--warn)} .t-미반영{background:var(--na-soft);color:var(--na)}
+  .t-확정{background:var(--ok-soft);color:var(--ok)} .t-제안{background:var(--warn-soft);color:var(--warn)}
+  .card.c-반영 .v{color:var(--ok)} .card.c-확인필요 .v{color:var(--warn)} .card.c-미반영 .v{color:var(--na)} .card.c-반대 .v{color:var(--err)} .card.c-반대.zero .v{color:var(--ok)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .drop.done{border-style:solid;border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+  .scopes{display:flex;flex-wrap:wrap;gap:10px}
+  .scope{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;background:#fff}
+  .scope input{margin:4px 0 0;width:16px;height:16px;accent-color:var(--accent)}
+  .scope.off{opacity:.55}
+  .scope small{display:block;color:var(--sub);font-size:12.5px}
+  td.ref{white-space:pre-wrap;font-size:13px;line-height:1.55;min-width:320px}
+  .more{color:var(--accent);cursor:pointer;font-size:12.5px;font-weight:600}
+  .maptbl td{font-size:14px}
+  .maptbl select,.maptbl input{font:inherit;font-size:13.5px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff;max-width:100%}
+  .maptbl select{width:100%}
+  .maptbl input.bad{border-color:var(--err);background:var(--err-soft)}
+  .addrow{display:flex;gap:6px;margin-top:6px}.addrow input{flex:1;min-width:0}
+  .bundle{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px}
+  .mini{padding:4px 10px;font-size:13px;border-radius:7px}
+  .flip{color:var(--err);font-weight:700}
+  .busy{position:fixed;inset:0;background:rgba(31,45,39,.28);display:flex;align-items:center;justify-content:center;z-index:50}
+  .busy.hidden{display:none}
+  .busy>div{background:#fff;border-radius:12px;padding:18px 26px;display:flex;gap:12px;align-items:center;font-weight:600;box-shadow:0 18px 40px -20px rgba(31,45,39,.5)}
+  .spin{width:16px;height:16px;border:2.5px solid var(--accent);border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .cards{grid-template-columns:repeat(4,1fr)}
+  #fileBox th{position:static}
+  @media (max-width:760px){.two{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr}}
+
+  button{font:inherit;border:0;border-radius:8px;padding:10px 20px;cursor:pointer;font-weight:600}
+  .primary{background:var(--accent);color:#fff}
+  .primary:disabled{background:#aab6cf;cursor:not-allowed}
+  .ghost{background:var(--accent-soft);color:var(--accent);padding:7px 14px;font-size:14px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .muted{color:var(--sub);font-size:13px}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:6px 0 18px}
+  .card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;transition:.12s;background:#fff}
+  .card:hover{border-color:#a9c7b0}
+  .card.sel{outline:2px solid var(--accent);outline-offset:-1px}
+  .card .v{font-size:24px;font-weight:700}
+  .card .k{font-size:13px;color:var(--sub)}
+  .card.c-오류 .v{color:var(--err)} .card.c-확인 .v{color:var(--warn)} .card.c-판정 .v{color:var(--na)} .card.c-정상 .v{color:var(--ok)}
+  .search{flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px}
+  .tableWrap{max-height:640px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+  .iss{margin:0 0 4px}
+  .iss .rule{font-weight:700;font-size:12.5px;margin-right:6px}
+  .iss .ref{color:var(--sub);font-size:13px}
+  .val{font-family:ui-monospace,Consolas,monospace;font-size:13px}
+  .note{background:#fffbea;border:1px solid #f0e2a8;border-radius:10px;padding:12px 16px;font-size:14px;color:#6b5a12;margin-top:18px}
+  details{margin-top:14px} summary{cursor:pointer;color:var(--sub);font-size:14px}
+  .rules td{font-size:13.5px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<header class="site-head"><div class="in"><a class="brand" href="index.html" aria-label="쿼랑이 처음 화면"><svg width="38" height="38" viewBox="18 22 164 140" role="img" aria-label="쿼랑이" xmlns="http://www.w3.org/2000/svg"><defs>
+  <radialGradient id="hfur" cx="40%" cy="30%" r="78%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#f4f6f9"/><stop offset=".85" stop-color="#dfe5ee"/><stop offset="1" stop-color="#c3ccda"/>
+  </radialGradient>
+  <radialGradient id="hbody" cx="38%" cy="25%" r="80%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#eef1f6"/><stop offset="1" stop-color="#b9c3d2"/>
+  </radialGradient>
+  <radialGradient id="hear" cx="40%" cy="35%" r="70%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cbd3df"/>
+  </radialGradient>
+  <radialGradient id="hinner" cx="50%" cy="38%" r="62%">
+    <stop offset="0" stop-color="#ffd9d2"/><stop offset=".7" stop-color="#f4aaa1"/><stop offset="1" stop-color="#e48e86"/>
+  </radialGradient>
+  <linearGradient id="hstripe" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#4b5874"/><stop offset="1" stop-color="#262f45"/>
+  </linearGradient>
+  <radialGradient id="hiris" cx="50%" cy="72%" r="70%">
+    <stop offset="0" stop-color="#7fb2ff"/><stop offset=".45" stop-color="#3561b8"/><stop offset="1" stop-color="#16244d"/>
+  </radialGradient>
+  <radialGradient id="hmuzzle" cx="50%" cy="30%" r="72%">
+    <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dbe1ea"/>
+  </radialGradient>
+  <radialGradient id="hnose" cx="42%" cy="28%" r="72%">
+    <stop offset="0" stop-color="#ffbdb2"/><stop offset="1" stop-color="#d4574f"/>
+  </radialGradient>
+  <radialGradient id="hblush" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#ff9b94" stop-opacity=".8"/><stop offset="1" stop-color="#ff9b94" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="hscarf" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#9fd067"/><stop offset=".5" stop-color="#4fa257"/><stop offset="1" stop-color="#007049"/>
+  </linearGradient>
+  <linearGradient id="hboard" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#2f9a68"/><stop offset="1" stop-color="#00593a"/>
+  </linearGradient>
+  <linearGradient id="hring" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#b3dc7e"/><stop offset=".45" stop-color="#80ba4c"/><stop offset="1" stop-color="#006a45"/>
+  </linearGradient>
+  <radialGradient id="hlens" cx="35%" cy="30%" r="80%">
+    <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".5" stop-color="#e3f3e2" stop-opacity=".7"/><stop offset="1" stop-color="#9fcfae" stop-opacity=".85"/>
+  </radialGradient>
+  <linearGradient id="hhandle" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#27342e"/><stop offset=".5" stop-color="#55665d"/><stop offset="1" stop-color="#1c2622"/>
+  </linearGradient>
+  <filter id="hsoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="hsoft2" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4"/></filter>
+</defs>
+  <g>
+    <circle cx="55" cy="50" r="22" fill="url(#hear)"/>
+    <circle cx="145" cy="50" r="22" fill="url(#hear)"/>
+  </g>
+  <ellipse cx="56" cy="53" rx="11.5" ry="11" fill="url(#hinner)"/>
+  <ellipse cx="144" cy="53" rx="11.5" ry="11" fill="url(#hinner)"/>
+  <path d="M50 45c3-2 7-2 10 0M140 45c3-2 7-2 10 0" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".9"/>
+  <path d="M100 38C140 38 167 61 170 96L179 103L168 108L177 116L163 122C154 146 128 158 100 158C72 158 46 146 37 122L23 116L32 108L21 103L30 96C33 61 60 38 100 38Z" fill="url(#hfur)"/>
+  <ellipse cx="82" cy="56" rx="32" ry="12" fill="#fff" opacity=".9" filter="url(#hsoft2)"/>
+  <g fill="url(#hstripe)">
+    <path d="M100 40c-4.4 0-6.6 3.2-6.4 7.4l1.8 15.4c.5 3 8.7 3 9.2 0l1.8-15.4c.2-4.2-2-7.4-6.4-7.4Z"/>
+    <path d="M77.5 45.5c-3.3 1.1-4.4 4.4-3.1 7.4l6.3 11.6c1.5 2.4 7.1.4 6.5-2.4L85 50c-.8-3.8-4.3-5.4-7.5-4.5Z"/>
+    <path d="M122.5 45.5c3.3 1.1 4.4 4.4 3.1 7.4l-6.3 11.6c-1.5 2.4-7.1.4-6.5-2.4L115 50c.8-3.8 4.3-5.4 7.5-4.5Z"/>
+    <path d="M33 87c-1 3.3 1.2 6.4 4.4 6.6l16 1c2.8.1 3.3-4.8.6-5.8l-15-5.3c-3.2-1.1-5.4 1-6 3.5Z"/>
+    <path d="M35 107.5c0 3.2 2.8 5.4 5.8 4.5l12.8-3.9c2.7-.8 1.7-5.3-1.1-5.3l-13.2.3c-2.6.1-4.3 1.8-4.3 4.4Z"/>
+    <path d="M167 87c1 3.3-1.2 6.4-4.4 6.6l-16 1c-2.8.1-3.3-4.8-.6-5.8l15-5.3c3.2-1.1 5.4 1 6 3.5Z"/>
+    <path d="M165 107.5c0 3.2-2.8 5.4-5.8 4.5l-12.8-3.9c-2.7-.8-1.7-5.3 1.1-5.3l13.2.3c2.6.1 4.3 1.8 4.3 4.4Z"/>
+  </g>
+  <ellipse cx="59" cy="124" rx="16" ry="10.5" fill="url(#hblush)"/>
+  <ellipse cx="141" cy="124" rx="16" ry="10.5" fill="url(#hblush)"/>
+  <g class="eyes">
+    <ellipse cx="78" cy="101" rx="12.5" ry="14.5" fill="#101a35"/>
+    <ellipse cx="122" cy="101" rx="12.5" ry="14.5" fill="#101a35"/>
+    <ellipse cx="78" cy="102.5" rx="10.6" ry="12.4" fill="url(#hiris)"/>
+    <ellipse cx="122" cy="102.5" rx="10.6" ry="12.4" fill="url(#hiris)"/>
+    <ellipse cx="78" cy="100" rx="5.6" ry="6.6" fill="#0b1229"/>
+    <ellipse cx="122" cy="100" rx="5.6" ry="6.6" fill="#0b1229"/>
+    <ellipse cx="83" cy="94.5" rx="4.8" ry="5.4" fill="#fff"/>
+    <ellipse cx="127" cy="94.5" rx="4.8" ry="5.4" fill="#fff"/>
+    <circle cx="73.5" cy="107.5" r="2.2" fill="#fff" opacity=".9"/>
+    <circle cx="117.5" cy="107.5" r="2.2" fill="#fff" opacity=".9"/>
+    <path d="M71 110.5c4 3 10 3 14 0M115 110.5c4 3 10 3 14 0" stroke="#a9ccff" stroke-width="1.6" stroke-linecap="round" fill="none" opacity=".7"/>
+  </g>
+  <ellipse cx="100" cy="127.5" rx="27" ry="18" fill="url(#hmuzzle)"/>
+  <g stroke="#9aa6b8" stroke-width="1.3" stroke-linecap="round" opacity=".75">
+    <path d="M76 126l-19-3M76 131l-19 1.5M124 126l19-3M124 131l19 1.5"/>
+  </g>
+  <g fill="#b6bfcc"><circle cx="86" cy="128" r="1.1"/><circle cx="83" cy="132" r="1.1"/><circle cx="114" cy="128" r="1.1"/><circle cx="117" cy="132" r="1.1"/></g>
+  <path d="M91.8 117.2h16.4c2.3 0 3.4 2.5 1.9 4.2l-8.1 7.8c-1.1 1-2.9 1-4 0l-8.1-7.8c-1.5-1.7-.4-4.2 1.9-4.2Z" fill="url(#hnose)"/>
+  <ellipse cx="97" cy="119.8" rx="3.8" ry="1.7" fill="#fff" opacity=".75"/>
+  <path d="M100 129v4.4c0 3.8-3 6-6.3 6-3 0-5.2-2-5.7-4.5M100 133.4c0 3.8 3 6 6.3 6 3 0 5.2-2 5.7-4.5" fill="none" stroke="#3a3f4d" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M96 140.5c1.4 3.2 6.6 3.2 8 0" fill="#f08c86"/>
+</svg><svg class="wordmark" width="65.1" height="24" viewBox="14 -1654 5044 1860" aria-hidden="true"><path d="M1118 -1506H180V-1276H832C831 -1236 829 -1193 828 -1148L130 -1120L166 -882L806 -934C798 -875 788 -814 776 -748C510 -733 246 -731 24 -728L56 -502C184 -502 323 -503 468 -508V116H756V-522C920 -534 1086 -552 1248 -580L1226 -786C1173 -779 1119 -773 1066 -768C1116 -1042 1116 -1231 1118 -1382ZM1634 -1642H1344V-438H988V-212H1344V190H1634Z M3239.04 -1642H2951.04V-546H3239.04V-988H3479.04V-1224H3239.04ZM2685.04 -1534H1837.04V-1310H2403.04V-1184H1839.04V-606H1997.04C2379.04 -606 2613.04 -616 2863.04 -666L2833.04 -892C2616.04 -853 2420.04 -843 2127.04 -840V-972H2685.04ZM2629.04 -516C2237.04 -516 1993.04 -380 1993.04 -158C1993.04 62 2237.04 190 2629.04 190C3013.04 190 3257.04 62 3257.04 -158C3257.04 -380 3013.04 -516 2629.04 -516ZM2629.04 -294C2859.04 -294 2973.04 -250 2973.04 -158C2973.04 -66 2859.04 -24 2629.04 -24C2395.04 -24 2277.04 -66 2279.04 -158C2277.04 -250 2395.04 -294 2629.04 -294Z M5048.08 -1644H4758.08V196H5048.08ZM4046.08 -1518C3762.08 -1518 3554.08 -1264 3554.08 -862C3554.08 -454 3762.08 -200 4046.08 -200C4324.08 -200 4532.08 -454 4534.08 -862C4532.08 -1264 4324.08 -1518 4046.08 -1518ZM4046.08 -1258C4172.08 -1258 4256.08 -1124 4256.08 -862C4256.08 -596 4172.08 -462 4046.08 -462C3916.08 -462 3832.08 -596 3834.08 -862C3832.08 -1124 3916.08 -1258 4046.08 -1258Z" fill="currentColor"/></svg></a><a class="section" href="pms.html">PMS Expectedness</a><nav aria-label="PMS Expectedness 메뉴"><a href="pms.html">소개</a><a href="pms-check.html" aria-current="page">Expectedness 점검</a></nav></div></header>
+<main>
+  <h1>Expectedness 점검하기</h1>
+  <p class="lead">코딩시트의 이상사례(PT)를 허가사항과 비교해 <b>SHEET_EXPT</b>(반영 / 미반영 / 확인필요)와 <b>REF</b>를 채워 드려요. 파일은 이 PC 안에서만 처리되고 밖으로 전송되지 않아요.</p>
+
+  <section class="step">
+    <h2><span class="num">1</span>MedDRA 사전 등록</h2>
+    <p class="hint">MedDRA 폴더(안에 V29.0, V29.1 같은 버전 폴더가 있는 폴더)를 선택해 주세요. 영문·한글 ASCII를 찾아 이 브라우저에 저장해요. 브라우저가 "업로드"를 묻지만 파일은 밖으로 나가지 않아요.</p>
+    <div id="mdInfo" class="dictInfo hidden"></div>
+    <div class="drop" id="dropMd"><b>클릭해서 MedDRA 폴더 선택</b></div>
+    <input type="file" id="pickMd" webkitdirectory directory multiple class="hidden">
+    <p class="muted" id="mdMsg" style="margin:10px 0 0"></p>
+  </section>
+
+  <section class="step">
+    <h2><span class="num">2</span>코딩시트와 허가사항 넣기</h2>
+    <p class="hint">Medical Coding Sheet(.xlsx)와 약학정보원에서 받은 허가사항 PDF를 하나씩 넣어 주세요.</p>
+    <div class="two">
+      <div><div class="drop" id="dropSheet">Medical Coding Sheet(.xlsx)를 끌어다 놓거나 <b>클릭해서 선택</b></div><input type="file" id="pickSheet" accept=".xlsx" class="hidden"></div>
+      <div><div class="drop" id="dropPdf">허가사항 PDF를 끌어다 놓거나 <b>클릭해서 선택</b></div><input type="file" id="pickPdf" accept=".pdf" class="hidden"></div>
+    </div>
+    <div id="fileBox" class="hidden" style="margin-top:14px">
+      <table><thead><tr><th style="width:16%">구분</th><th style="width:34%">파일</th><th>상태</th></tr></thead><tbody id="fileRows"></tbody></table>
+    </div>
+  </section>
+
+  <section class="step">
+    <h2><span class="num">3</span>반영 범위</h2>
+    <p class="hint">체크한 항목에 나오는 용어만 근거로 써요. 숫자는 REF 우선순위예요. 신중투여·과량투여·상호작용 등은 반응 근거가 아니라서 쓰지 않아요.</p>
+    <div class="scopes" id="scope"></div>
+  </section>
+
+  <section class="step">
+    <h2><span class="num">4</span>허가사항 용어 매핑 확인 <span id="mapState"></span></h2>
+    <p class="hint">허가사항에 있지만 MedDRA에 글자 그대로 없는 용어예요. 후보 PT가 맞으면 <b>확정</b>을 눌러 주세요. 확정한 것만 반영 근거로 쓰고, 확정 전에는 확인필요로 나와요. 한 용어에 PT를 추가하면 <b>묶음</b>이 돼요 (예: 간 기능 검사 수치 증가 → AST 증가). 매핑은 약마다 이 브라우저에 저장돼요.</p>
+    <div id="mapBody"><p class="muted" style="margin:0">MedDRA 사전과 허가사항 PDF가 준비되면 여기에 표시돼요.</p></div>
+    <div class="row" style="margin-top:12px">
+      <button class="ghost" id="mapExport" disabled>매핑표 CSV 저장</button>
+      <button class="ghost" id="mapImport">매핑표 CSV 불러오기</button>
+      <input type="file" id="pickMap" accept=".csv" class="hidden">
+      <span class="muted" id="mapSaved"></span>
+    </div>
+    <details id="termList"><summary>허가사항에서 찾은 용어 전체 보기</summary><div id="termListBody" style="margin-top:10px"></div></details>
+  </section>
+
+  <section class="step">
+    <h2><span class="num">5</span>점검하기</h2>
+    <div class="row"><button class="primary" id="run" disabled>점검하기</button><span class="muted" id="runMsg">MedDRA 사전, 코딩시트, 허가사항을 넣어 주세요.</span></div>
+    <div id="result" class="hidden">
+      <div class="cards" id="cards"></div>
+      <div class="row">
+        <button class="primary" id="dl">결과 엑셀 내려받기</button>
+        <label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="keep" checked> 이미 SHEET_EXPT 값이 있는 행은 덮어쓰지 않기 (연차 추가분만 채울 때)</label>
+      </div>
+      <p class="muted" id="dlMsg" style="margin:0 0 10px">원본 코딩시트에서 SHEET_EXPT·REF 칸만 바꿔요. 서식과 메모는 그대로예요.</p>
+      <div class="row" style="margin-top:6px">
+        <input class="search" id="q" placeholder="PT, 피험자, 특수상황, REF 내용으로 찾기">
+        <span class="muted" id="count"></span>
+      </div>
+      <div class="tableWrap">
+        <table><thead id="resHead"></thead><tbody id="resRows"></tbody></table>
+      </div>
+      <div class="note">이 결과는 검토를 돕기 위한 초안이에요. Expectedness는 DM 담당자가 최종 판단해요. "확인필요"는 근거가 애매하다는 뜻이고, REF 첫 줄에 이유가 적혀 있어요.</div>
+      <details>
+        <summary>판정 규칙 보기</summary>
+        <table class="rules" style="margin-top:8px"><tbody>
+          <tr><td style="width:16%"><b>1. 특수상황</b></td><td>AESPECIAL(또는 AESS)이 "해당없음"이 아니면 확인필요예요. 예: 허가 외 사용, 효과 부족. REF에 "특수상황: …"으로 적어요.</td></tr>
+          <tr><td><b>2. 같은 PT</b></td><td>허가사항 용어를 MedDRA 한글 LLT로 찾아 PT로 바꾼 뒤, 코딩시트 PT와 같으면 반영이에요. REF는 우선순위가 가장 높은 근거 하나예요.</td></tr>
+          <tr><td><b>3. 약한 근거</b></td><td>같은 PT지만 "연구되지 않았다", "병력이 있는", "예방" 같은 환자 상태 문맥에서만 나오거나, 매핑을 아직 확정하지 않았으면 확인필요예요.</td></tr>
+          <tr><td><b>4. 같은 HLT</b></td><td>PT는 다르지만 HLT가 같으면 확인필요예요. Primary·Secondary 경로를 모두 봐요. REF 첫 줄에 [같은 HLT: 이름 · 경로 · 묶음 크기]를 적어요. Secondary이거나 묶음이 크면(예: Haemorrhages NEC 185개) 미반영일 가능성이 높아요.</td></tr>
+          <tr><td><b>5. 없음</b></td><td>허가사항에서 찾지 못하면 미반영이고, REF는 비워요.</td></tr>
+          <tr><td><b>MedDRA 버전</b></td><td>행마다 DICVER(예: 29.0, 29.1)에 맞는 버전 사전을 써요. 해당 버전이 등록되어 있지 않으면 점검하지 않아요.</td></tr>
+        </tbody></table>
+      </details>
+    </div>
+  </section>
+</main>
+<div class="busy hidden" id="busy" role="status" aria-live="polite"><div><span class="spin"></span><span id="busyText">처리 중…</span></div></div>
+
+<footer class="site-foot"><div class="in">
+  <img src="img/becco-logo.png" alt="BeccoCRO" width="70" height="26">
+  <span><b>쿼랑이</b> Data Management 검토 도우미</span>
+  <span>문의 김지후</span>
+  <span>2026-11-19 버전</span>
+</div></footer>
+
+<script src="js/xlsx-style.min.js"></script>
+<script src="js/jszip.min.js"></script>
+<script src="js/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/pdf.worker.min.js';</script>
+<script src="js/pms-core.js"></script>
+<script src="js/xlsx-patch.js"></script>
+<script src="js/pms-app.js"></script>
+</body>
+</html>
