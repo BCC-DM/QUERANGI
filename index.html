@@ -44,7 +44,34 @@
   .tool.idea h3{font-size:17px}
   .safe{margin:26px 0 0;font-size:14px;color:var(--sub);display:flex;gap:8px;align-items:center}
 
+  /* 새 소식 알림 (말풍선 안) */
+  .newsline{display:inline-flex;align-items:center;gap:8px;margin-top:14px;font-size:13.5px;color:var(--ink);text-decoration:none;background:var(--leaf-soft);border:1px solid #d3e8bd;border-radius:999px;padding:4px 12px 4px 5px}
+  .newsline b{background:var(--brand);color:#fff;border-radius:999px;padding:1px 9px;font-size:12px}
+  .newsline:hover{border-color:var(--leaf)}
+
+  /* 업데이트 소식 */
+  .updates{margin-top:44px}
+  .updates .lead{color:var(--sub);margin:-8px 0 16px;font-size:14.5px}
+  .log{list-style:none;margin:0;padding:0;background:var(--sheet);border:1px solid var(--rule);border-radius:14px}
+  .log > li{display:grid;grid-template-columns:150px minmax(0,1fr);gap:20px;padding:22px 24px;border-top:1px solid var(--rule)}
+  .log > li:first-child{border-top:0}
+  .log .ver{font-size:20px;font-weight:800;color:var(--ink);line-height:1.2;letter-spacing:-.01em}
+  .log .date{display:block;font-size:13px;color:var(--sub);font-weight:500;margin-top:4px}
+  .log .latest{display:inline-block;margin-top:8px;font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-soft);border-radius:6px;padding:1px 8px}
+  .log h3{font-size:16.5px;margin:0 0 8px}
+  .log ul{margin:0;padding:0;list-style:none}
+  .log ul li{position:relative;padding-left:16px;margin-top:6px;font-size:14.5px;color:#34433b}
+  .log ul li::before{content:"";position:absolute;left:2px;top:.68em;width:6px;height:6px;border-radius:50%;background:var(--leaf)}
+  .tag{display:inline-block;font-size:12px;font-weight:700;border-radius:5px;padding:0 7px;margin-right:6px;vertical-align:1px}
+  .tag.cm{background:var(--brand-soft);color:var(--brand)}
+  .tag.pms{background:#e6eefb;color:#2a4f99}
+  .tag.all{background:var(--gray-soft);color:var(--sub)}
+  .log .see{display:inline-block;margin-top:10px;font-size:14px;font-weight:600}
+
   @media (max-width:860px){
+    .log > li{grid-template-columns:1fr;gap:10px}
+    .log .latest{margin:0 0 0 8px}
+    .log .date{display:inline;margin-left:8px}
     .greet{grid-template-columns:1fr;justify-items:center;gap:18px;padding:36px 0 28px;text-align:center}
     .stage{width:210px;height:210px}
     .greet .tiger{width:186px}
@@ -284,6 +311,7 @@
       <p class="tagline">당신 곁의 작은 DM 파트너</p>
       <h1>안녕하세요, 쿼랑이예요!<br>오늘은 어떤 검토를 도와드릴까요?</h1>
       <p>BeccoCRO Data Management의 검토 도우미예요. 쓰려는 도구를 골라 주세요. 파일은 이 PC의 브라우저 안에서만 처리돼요.</p>
+      <a class="newsline" href="#updates"><b>BETA</b>PMS 도구 추가, CM 이슈 리스트 개편</a>
     </div>
   </section>
 
@@ -306,13 +334,31 @@
       <p>반복해서 손으로 확인하는 작업이 있으면 김지후에게 알려 주세요. 쿼랑이 도구로 추가할게요.</p>
     </div>
   </div>
+
+  <!-- 업데이트 소식: 새 버전은 맨 위에 추가하고, "최신" 표시와 말풍선 안 newsline, 바닥글 버전을 같이 바꿔요 -->
+  <section class="updates" id="updates">
+    <h2 class="pick">업데이트 소식</h2>
+    <p class="lead">쿼랑이가 바뀔 때마다 여기에 적어요. 화면이 예전과 다르면 Ctrl+Shift+R로 새로고침해 주세요.</p>
+    <ol class="log">
+      <li>
+        <div><span class="ver">BETA</span><span class="date">2026-11-20</span><span class="latest">최신</span></div>
+        <div>
+          <h3><span class="tag pms">PMS</span><span class="tag cm">CM</span>PMS 도구 추가, CM 이슈 리스트 개편</h3>
+          <ul>
+            <li>PMS Expectedness 점검 도구가 생겼어요. 허가사항 PDF와 Medical Coding Sheet를 넣으면 SHEET_EXPT·REF를 채운 엑셀을 받아요.</li>
+            <li>CM 이슈 리스트 엑셀에 원본의 모든 행을 담고, 문제가 된 칸만 노란색으로 칠해요. 맑은 고딕 11pt와 테두리를 넣고 요약 시트는 뺐어요.</li>
+          </ul>
+        </div>
+      </li>
+    </ol>
+  </section>
 </main>
 
 <footer class="site-foot"><div class="in">
   <img src="img/becco-logo.png" alt="BeccoCRO" width="70" height="26">
   <span><b>쿼랑이</b> Data Management 검토 도우미</span>
   <span>문의 김지후</span>
-  <span>2026-11-19 버전</span>
+  <span>BETA · 2026-11-20</span>
 </div></footer>
 </body>
 </html>

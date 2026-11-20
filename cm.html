@@ -97,7 +97,62 @@
   .verdicts .ex{display:block;margin-top:8px;color:var(--ink);font-size:13.5px}
   .disclaim{margin-top:18px;font-size:14px;color:var(--sub)}
 
+  /* 점검 방법: 규칙 + 과제 데이터 비교 */
+  .ways{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:stretch}
+  .way{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:24px 24px 20px;display:flex;flex-direction:column}
+  .way-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}
+  .way-head .order{display:block;font-size:13px;color:var(--sub);margin-bottom:2px}
+  .way h3{font-size:19px;margin:0;letter-spacing:-.01em}
+  .way > p{margin:0 0 18px;color:var(--sub);font-size:14.5px}
+  .res{flex:none;font-size:12.5px;font-weight:700;border-radius:6px;padding:3px 10px;white-space:nowrap}
+  .res.red{background:var(--red-soft);color:var(--red)}
+  .res.amber{background:var(--amber-soft);color:var(--amber)}
+
+  .rgroups{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+  .rgroups li{display:grid;grid-template-columns:92px minmax(0,1fr);gap:4px 14px;padding:12px 0;border-bottom:1px solid var(--rule)}
+  .rgroups .nm{font-weight:700;font-size:14.5px;line-height:1.35}
+  .rgroups .nm small{display:block;font-weight:500;font-size:12px;color:var(--sub);margin-top:2px}
+  .rgroups .what{font-size:14px}
+  .rgroups .eg{grid-column:2;display:flex;flex-wrap:wrap;gap:6px}
+  .mini{font-size:12.5px;border:1px solid var(--field);border-radius:6px;padding:1px 8px;background:#fff;color:var(--ink);white-space:nowrap}
+  .mini mark{background:var(--red-soft);color:var(--red);font-weight:700;padding:0 3px;border-radius:3px}
+  .mini.am mark{background:var(--amber-soft);color:var(--amber)}
+  .way .foot{margin:14px 0 0;font-size:13px;color:var(--sub)}
+
+  .dist{border:1px solid var(--rule);border-radius:10px;padding:16px 16px 14px;background:#fbfdfa;margin-bottom:16px}
+  .dist-top{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--sub);margin-bottom:12px}
+  .dist-top b{color:var(--ink);font-size:14px}
+  .bars{position:relative;margin:0;padding:0;list-style:none}
+  .bars li{display:grid;grid-template-columns:56px minmax(0,1fr) 92px;gap:10px;align-items:center;font-size:13.5px;margin-bottom:8px}
+  .bars .v{font-weight:600;text-align:right}
+  .bars .track{position:relative;height:18px;background:var(--gray-soft);border-radius:4px}
+  .bars .fill{position:absolute;inset:0 auto 0 0;border-radius:4px;background:var(--brand)}
+  .bars .me .fill{background:var(--amber)}
+  .bars .me .v,.bars .me .n{color:var(--amber);font-weight:700}
+  .bars .n{color:var(--sub);font-size:13px}
+  .bars .cut{position:absolute;top:-6px;bottom:-6px;left:5%;border-left:2px dashed var(--red)}
+  .cutlabel{font-size:12px;color:var(--red);margin:2px 0 10px 66px}
+  .dist .note{margin-top:4px}
+
+  .crit{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px;margin:0}
+  .crit dt{font-weight:700;font-size:14px;margin-bottom:2px}
+  .crit dd{margin:0;color:var(--sub);font-size:13.5px}
+  .crit em{font-style:normal;color:var(--ink);font-weight:600}
+
+  .why2{margin-top:20px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 16px;background:var(--brand-soft);border-radius:10px;padding:16px 20px;font-size:14.5px}
+  .why2 b{color:var(--brand-ink)}
+  .why2 p{margin:0}
+
+  details.allrules{margin-top:16px;background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:0 18px}
+  details.allrules summary{cursor:pointer;font-weight:600;padding:14px 0;color:var(--brand)}
+  details.allrules table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:13.5px}
+  details.allrules th{text-align:left;font-size:12.5px;color:var(--sub);font-weight:600;padding:6px 10px;border-bottom:1px solid var(--field)}
+  details.allrules td{padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+  details.allrules td:first-child{white-space:nowrap;font-weight:700}
+  details.allrules tr.grp td{background:var(--gray-soft);font-weight:700;color:var(--sub);font-size:12.5px;padding:5px 10px}
+
   @media (max-width:900px){
+    .ways{grid-template-columns:1fr}
     .hero{grid-template-columns:1fr;gap:36px;padding:40px 0}
     .hero h1{font-size:32px}
     .steps{grid-template-columns:1fr;gap:22px}
@@ -110,6 +165,14 @@
   }
   @media (max-width:560px){
     main{padding:0 16px}
+    .way{padding:20px 16px 16px}
+    .rgroups li{grid-template-columns:1fr}
+    .rgroups .eg{grid-column:1}
+    .crit{grid-template-columns:1fr}
+    .why2{grid-template-columns:1fr}
+    .bars li{grid-template-columns:48px minmax(0,1fr) 80px;gap:8px}
+    .cutlabel{margin-left:56px}
+    details.allrules td:first-child{white-space:normal}
     .hero h1{font-size:28px}
     .crf{font-size:13px}
     .crf .opt{display:none}
@@ -235,8 +298,8 @@
         <tbody>
           <tr class="row"><td>타이레놀정500mg</td><td class="hit-red">5000</td><td>mg</td><td class="opt">PRN</td><td>PO</td></tr>
           <tr class="noterow"><td colspan="5"><div class="note red n1"><b>오류</b><span>1회 용량이 함량의 10배예요 (5000 mg, 함량 500 mg)<span class="why">DOSE-01 자릿수·단위 오류 의심</span></span></div></td></tr>
-          <tr class="row"><td>레토프라 정 10mg</td><td>1</td><td>tab</td><td class="opt">QD</td><td class="hit-amber">IV</td></tr>
-          <tr class="noterow"><td colspan="5"><div class="note amber n2"><b>확인 필요</b><span>이 제품에서 드문 경로예요: IV (0/44명)<span class="why">DICT-ROUTE 자주 쓰인 값: PO 44명(100%)</span></span></div></td></tr>
+          <tr class="row"><td>레토프라 정 10mg</td><td class="hit-amber">2</td><td>tab</td><td class="opt">QD</td><td>PO</td></tr>
+          <tr class="noterow"><td colspan="5"><div class="note amber n2"><b>확인 필요</b><span>이 제품에서 드문 용량이에요: 20 mg (1/44명)<span class="why">DICT-DOSE 2 tab × 10 mg로 환산 · 자주 쓰인 값: 10 mg 43명(98%)</span></span></div></td></tr>
           <tr class="row"><td>가스모틴 정 5mg</td><td>1</td><td>tab</td><td class="opt">BID</td><td>PO</td></tr>
           <tr class="noterow"><td colspan="5"><div class="note green n3"><b>정상</b><span>함량이 맞고, 학습한 과제에서 가장 많이 쓰인 용량·빈도·경로예요</span></div></td></tr>
         </tbody>
@@ -266,13 +329,110 @@
     </ol>
   </section>
 
+  <section class="block" id="method">
+    <h2>이렇게 점검해요</h2>
+    <p class="lead">한 행을 두 가지 방법으로 봐요. 먼저 정해 둔 규칙으로 확실한 오류를 찾고, 그다음 완료된 과제의 데이터와 비교해서 드문 값을 찾아요. AI는 쓰지 않아서 같은 파일을 넣으면 항상 같은 결과가 나와요.</p>
+
+    <div class="ways">
+      <article class="way">
+        <div class="way-head">
+          <div><span class="order">먼저 · 1·2단계</span><h3>규칙으로 점검</h3></div>
+          <span class="res red">오류</span>
+        </div>
+        <p>약의 성질상 맞을 수 없는 조합을 미리 정해 두고 찾아요. 처음 나온 제품에도 똑같이 적용돼요.</p>
+        <ul class="rgroups">
+          <li><span class="nm">형식<small>STRUCT</small></span><span class="what">용량이 숫자가 아니거나, 필수값이 비었거나, 정해진 목록에 없는 단위·빈도·경로</span>
+            <span class="eg"><span class="mini">용량 <mark>1/2</mark></span><span class="mini">단위 <mark>알</mark></span><span class="mini">빈도 <mark>5~6회</mark></span></span></li>
+          <li><span class="nm">제형<small>FORM</small></span><span class="what">제품명 끝(정·캡슐·주)과 단위·경로가 맞지 않음</span>
+            <span class="eg"><span class="mini">레토프라 정 · 1 <mark>cap</mark></span><span class="mini">페니라민 주사 · <mark>PO</mark></span></span></li>
+          <li><span class="nm">단위와 경로<small>UNIT</small></span><span class="what">단위로 보면 불가능한 경로</span>
+            <span class="eg"><span class="mini">1 tab · <mark>SC</mark></span><span class="mini">2 puff · <mark>PO</mark></span></span></li>
+          <li><span class="nm">제품명과 경로<small>NAME</small></span><span class="what">점안제·흡입제·패취·좌제처럼 제품 종류로 정해지는 경로와 다름</span>
+            <span class="eg"><span class="mini">Hyabak eye drop · <mark>TOPICAL</mark></span><span class="mini">듀로제식 패취 · <mark>PO</mark></span></span></li>
+          <li><span class="nm">함량<small>DOSE</small></span><span class="what">제품명의 함량과 1회 용량이 10배 이상 차이 나거나, 정·캡슐을 한 번에 10개 이상</span>
+            <span class="eg"><span class="mini">타이레놀정500mg · <mark>5000</mark> mg</span></span></li>
+        </ul>
+        <p class="foot">비강 제품의 경로(NAME-02)는 팀 관행을 확인하는 중이라 확인 필요로 표시해요.</p>
+      </article>
+
+      <article class="way">
+        <div class="way-head">
+          <div><span class="order">그다음 · 3단계</span><h3>과제 데이터와 비교</h3></div>
+          <span class="res amber">확인 필요</span>
+        </div>
+        <p>완료된 과제에서 제품마다 어떤 용량·빈도·경로를 몇 명이 썼는지 세어 둔 "기준사전"과 비교해요. 거의 아무도 쓰지 않은 값이면 표시해요.</p>
+
+        <figure class="dist" style="margin:0 0 16px" aria-label="레토프라 정 10mg의 1회 용량 분포 예시">
+          <div class="dist-top"><b>레토프라 정 10mg · 1회 용량</b><span>학습 피험자 44명 · 예시</span></div>
+          <ul class="bars">
+            <li><span class="v">10 mg</span><span class="track"><span class="fill" style="width:98%"></span><span class="cut" aria-hidden="true"></span></span><span class="n">43명 · 98%</span></li>
+            <li class="me"><span class="v">20 mg</span><span class="track"><span class="fill" style="width:2.3%"></span><span class="cut" aria-hidden="true"></span></span><span class="n">1명 · 2%</span></li>
+          </ul>
+          <p class="cutlabel">점선: 5% 기준</p>
+          <div class="note amber"><b>확인 필요</b><span>검사한 행 "2 tab"은 2 × 10 mg = 20 mg예요. 이 제품을 쓴 사람의 5% 미만만 쓴 용량이에요.</span></div>
+        </figure>
+
+        <dl class="crit">
+          <div><dt>사람 수로 세요</dt><dd>한 피험자가 같은 값을 여러 번 입력해도 <em>1명</em>으로 세요. 한 사람 때문에 기준이 쏠리지 않아요.</dd></div>
+          <div><dt>5% 미만이면 드문 값</dt><dd>그 제품을 쓴 피험자 중 <em>5% 미만</em>이 쓴 값이면 확인 필요예요. 틀렸다는 뜻은 아니에요.</dd></div>
+          <div><dt>5명 이상 쓴 제품만 비교</dt><dd>학습한 피험자가 <em>5명 미만</em>이면 기준이 약해서 비교하지 않고 판정 불가로 둬요.</dd></div>
+          <div><dt>단위를 맞춰 비교</dt><dd>tab·cap·puff는 제품명 함량을 곱해 <em>mg</em>로 바꿔요. 함량이 없는 제품은 주로 쓰인 단위와 다르면 확인 필요예요.</dd></div>
+        </dl>
+      </article>
+    </div>
+
+    <div class="why2">
+      <b>둘을 함께 쓰는 이유</b>
+      <p>규칙은 확실하지만 "이 약을 하루 몇 번 먹는지"처럼 약마다 다른 건 알 수 없어요. 과제 데이터 비교는 약마다 다른 관행을 알지만, 처음 나온 제품은 비교할 수 없고 완료 과제에 같은 실수가 많으면 정상으로 배워요. 그래서 서로 빈 곳을 채우도록 함께 써요.</p>
+    </div>
+
+    <details class="allrules">
+      <summary>룰 전체 보기 (25개)</summary>
+      <table>
+        <thead><tr><th style="width:20%">룰</th><th>내용</th><th style="width:12%">판정</th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="3">1단계 · 형식</td></tr>
+          <tr><td>STRUCT-01</td><td>용량이 숫자가 아니거나 0 이하예요. 예: "1/2", "1~2", 엑셀이 날짜로 바꾼 "01월 02일". UK는 허용해요.</td><td>오류</td></tr>
+          <tr><td>STRUCT-02</td><td>필수값(용량·단위·빈도·경로)이 비어 있어요. 빈도 컬럼이 없는 파일은 빈도를 검사하지 않아요.</td><td>오류</td></tr>
+          <tr><td>STRUCT-03</td><td>허용 단위 목록에 없는 단위예요. 예: 알, 스푼. box·apply·회는 허용해요.</td><td>오류</td></tr>
+          <tr><td>STRUCT-04</td><td>빈도·경로가 표준 표기가 아니에요. 예: "5~6회", "하루한번", 경로 "주사"</td><td>오류</td></tr>
+          <tr class="grp"><td colspan="3">1단계 · 제형</td></tr>
+          <tr><td>FORM-01</td><td>제품명이 "정" 또는 영문 tab으로 끝나는데 단위가 캡슐(cap)이에요. 예: 레토프라 정 10mg 1 cap</td><td>오류</td></tr>
+          <tr><td>FORM-02</td><td>제품명이 "캡슐"·"캡" 또는 영문 cap으로 끝나는데 단위가 정(tab)이에요. 예: 엘도스 캡슐 2 tab</td><td>오류</td></tr>
+          <tr><td>FORM-03</td><td>제품명이 "주"·"주사" 또는 영문 inj로 끝나는데 경로가 IV·IM·SC가 아니에요. 예: 페니라민 주사 경로 PO</td><td>오류</td></tr>
+          <tr><td>FORM-04</td><td>제품명이 정·캡슐로 끝나는 고형제인데 단위가 ml·drop·puff예요. 예: 레토프라 정 10mg 5 ml</td><td>오류</td></tr>
+          <tr class="grp"><td colspan="3">1단계 · 단위와 경로</td></tr>
+          <tr><td>UNIT-01</td><td>단위가 tab인데 경로가 PO·SUBLINGUAL·VAGINAL이 아니거나, cap인데 PO·VAGINAL·INHALATION이 아니에요. 예: 1 tab SC</td><td>오류</td></tr>
+          <tr><td>UNIT-02</td><td>단위가 amp·vial·syringe·bag(주사 단위)인데 경로가 PO·TOPICAL이에요. 흡입·코세척 앰플은 허용해요.</td><td>오류</td></tr>
+          <tr><td>UNIT-03</td><td>단위가 puff인데 경로가 INHALATION·NASAL·SUBLINGUAL이 아니에요. 예: 2 puff PO</td><td>오류</td></tr>
+          <tr><td>UNIT-04</td><td>단위가 drop인데 경로가 IV·IM·SC예요.</td><td>오류</td></tr>
+          <tr class="grp"><td colspan="3">1단계 · 제품명과 경로</td></tr>
+          <tr><td>NAME-01</td><td>점안제(점안·안약·eye drop·opht)인데 경로가 OPHTHALMIC이 아니에요.</td><td>오류</td></tr>
+          <tr><td>NAME-02</td><td>비강 제품(나잘·nasal·비강)인데 경로가 NASAL이 아니에요. 예: 나잘스프레이 Inhalation</td><td>확인 필요</td></tr>
+          <tr><td>NAME-03</td><td>흡입제(흡입·~할러·엘립타·네뷸 등)인데 경로가 INHALATION이 아니에요.</td><td>오류</td></tr>
+          <tr><td>NAME-04</td><td>패취제(패취·패치·플라스타)인데 경로가 TRANSDERMAL·TOPICAL이 아니에요.</td><td>오류</td></tr>
+          <tr><td>NAME-05</td><td>시럽·현탁액·내복액(경구 액제)인데 경로가 PO가 아니에요. 점안·비강·주사 현탁액은 제외해요.</td><td>오류</td></tr>
+          <tr><td>NAME-06</td><td>연고·크림·로션(외용제)인데 경로가 PO예요. 먹는 겔(알마겔 등) 때문에 "겔"은 보지 않아요.</td><td>오류</td></tr>
+          <tr><td>NAME-07</td><td>좌제·좌약인데 경로가 RECTAL·VAGINAL이 아니에요.</td><td>오류</td></tr>
+          <tr><td>NAME-08</td><td>질정·질캡슐·질좌제인데 경로가 VAGINAL이 아니에요. 일반 "연질캡슐"은 해당 없어요.</td><td>오류</td></tr>
+          <tr class="grp"><td colspan="3">2단계 · 함량</td></tr>
+          <tr><td>DOSE-01</td><td>제품명의 함량과 1회 용량이 10배 이상 차이 나거나, 정·캡슐을 한 번에 10개 이상 입력했어요. 예: 타이레놀정500mg인데 5000 mg</td><td>오류</td></tr>
+          <tr class="grp"><td colspan="3">3단계 · 과제 데이터 비교 (기준사전)</td></tr>
+          <tr><td>DICT-DOSE</td><td>이 제품을 쓴 피험자의 5% 미만만 쓴 1회 용량이에요. tab·cap·puff는 함량을 곱해 mg로 바꿔 비교해요.</td><td>확인 필요</td></tr>
+          <tr><td>DICT-FREQ</td><td>이 제품을 쓴 피험자의 5% 미만만 쓴 빈도예요.</td><td>확인 필요</td></tr>
+          <tr><td>DICT-ROUTE</td><td>이 제품을 쓴 피험자의 5% 미만만 쓴 경로예요.</td><td>확인 필요</td></tr>
+          <tr><td>DICT-UNIT</td><td>제품명에 함량이 없어 mg로 바꿀 수 없는 제품인데, 주로 쓰인 단위와 다른 단위로 입력했어요. 예: 주로 mg로 입력된 제품을 2 cap으로 입력</td><td>확인 필요</td></tr>
+        </tbody>
+      </table>
+    </details>
+  </section>
 
   <section class="block">
     <h2>결과는 이렇게 나눠요</h2>
     <p class="lead">오탐을 줄이려고 근거가 확실한 것만 오류로 잡고, 나머지는 확인 필요로 따로 보여줘요.</p>
     <dl class="verdicts">
-      <div><dt><i style="background:var(--red)"></i>오류</dt><dd>형식이 틀렸거나 제품 함량과 맞지 않아요.<span class="ex">예: 용량 "1/2", 500mg 정인데 5000 mg</span></dd></div>
-      <div><dt><i style="background:var(--amber)"></i>확인 필요</dt><dd>완료된 과제에서 이 제품에 거의 쓰이지 않은 값이에요.<span class="ex">예: 경구약인데 경로 IV</span></dd></div>
+      <div><dt><i style="background:var(--red)"></i>오류</dt><dd>정해 둔 규칙에 어긋나요. 형식·제형·경로·함량 중 하나가 맞지 않아요.<span class="ex">예: 용량 "1/2", 정인데 단위 cap</span></dd></div>
+      <div><dt><i style="background:var(--amber)"></i>확인 필요</dt><dd>완료된 과제에서 이 제품에 거의 쓰이지 않은 값이에요.<span class="ex">예: 98%가 10 mg인데 20 mg</span></dd></div>
       <div><dt><i style="background:var(--gray)"></i>판정 불가</dt><dd>학습한 피험자가 5명 미만인 제품이라 비교할 기준이 없어요.<span class="ex">예: 처음 나온 제품</span></dd></div>
       <div><dt><i style="background:var(--green)"></i>정상</dt><dd>형식과 함량이 맞고, 학습한 값과도 맞아요.<span class="ex">예: 레토프라 정 10mg 1 tab QD PO</span></dd></div>
     </dl>
@@ -284,7 +444,7 @@
   <img src="img/becco-logo.png" alt="BeccoCRO" width="70" height="26">
   <span><b>쿼랑이</b> Data Management 검토 도우미</span>
   <span>문의 김지후</span>
-  <span>2026-11-18 버전</span>
+  <span>2026-11-20 버전</span>
 </div></footer>
 </body>
 </html>
