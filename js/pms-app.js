@@ -328,7 +328,7 @@
     var rows = terms.map(function (t) {
       var list = S.termMap[t], u = where[t], main = list[0];
       var cands = (u && u.candidates) || md.suggest(t);
-      var opts = cands.map(function (c) { return [c.ptEn, c.ptEn + ' / ' + c.ptKr + ' (유사도 ' + c.score + ')']; });
+      var opts = cands.map(function (c) { var why = typeof c.score === 'number' ? (c.how || '유사도') + ' ' + c.score : c.score; return [c.ptEn, c.ptEn + ' / ' + c.ptKr + ' (' + why + ')']; });
       if (main[0] && !opts.some(function (o) { return o[0] === main[0]; })) opts.unshift([main[0], main[0] + ' / ' + krOf(main[0])]);
       var sel = '<select data-act="main" data-term="' + esc(t) + '">' + opts.map(function (o) {
         return '<option value="' + esc(o[0]) + '"' + (o[0] === main[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') +

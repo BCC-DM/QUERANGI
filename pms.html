@@ -99,7 +99,71 @@
   .verdicts .ex{display:block;margin-top:8px;color:var(--ink);font-size:13.5px}
   .disclaim{margin-top:18px;font-size:14px;color:var(--sub)}
 
+
+  /* 점검 방법: 허가사항 읽기 + 행마다 판정 (CM 소개 페이지와 같은 모양) */
+  .ways{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:stretch}
+  .way{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:24px 24px 20px;display:flex;flex-direction:column}
+  .way-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}
+  .way-head .order{display:block;font-size:13px;color:var(--sub);margin-bottom:2px}
+  .way h3{font-size:19px;margin:0;letter-spacing:-.01em}
+  .way > p{margin:0 0 18px;color:var(--sub);font-size:14.5px}
+  .res{flex:none;font-size:12.5px;font-weight:700;border-radius:6px;padding:3px 10px;white-space:nowrap}
+  .res.green{background:var(--green-soft);color:var(--green)}
+  .res.amber{background:var(--amber-soft);color:var(--amber)}
+
+  .rgroups{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+  .rgroups li{display:grid;grid-template-columns:92px minmax(0,1fr);gap:4px 14px;padding:12px 0;border-bottom:1px solid var(--rule)}
+  .rgroups .nm{font-weight:700;font-size:14.5px;line-height:1.35}
+  .rgroups .nm small{display:block;font-weight:500;font-size:12px;color:var(--sub);margin-top:2px}
+  .rgroups .what{font-size:14px}
+  .rgroups .eg{grid-column:2;display:flex;flex-wrap:wrap;gap:6px}
+  .mini{font-size:12.5px;border:1px solid var(--field);border-radius:6px;padding:1px 8px;background:#fff;color:var(--ink);white-space:nowrap}
+  .mini mark{background:var(--green-soft);color:var(--green);font-weight:700;padding:0 3px;border-radius:3px}
+  .mini.no mark{background:var(--red-soft);color:var(--red)}
+  .mini.am mark{background:var(--amber-soft);color:var(--amber)}
+  .way .foot{margin:14px 0 0;font-size:13px;color:var(--sub)}
+
+  /* 판정 순서 */
+  .flow{list-style:none;margin:0 0 16px;padding:0;border-top:1px solid var(--rule)}
+  .flow li{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--rule)}
+  .flow .no{width:24px;height:24px;border-radius:50%;background:var(--gray-soft);color:var(--sub);font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .flow .q{font-size:14px;line-height:1.4}
+  .flow .q small{display:block;color:var(--sub);font-size:12.5px}
+  .flow .to{font-size:12.5px;font-weight:700;border-radius:6px;padding:2px 9px;white-space:nowrap}
+  .flow .to.green{background:var(--green-soft);color:var(--green)}
+  .flow .to.amber{background:var(--amber-soft);color:var(--amber)}
+  .flow .to.gray{background:var(--gray-soft);color:var(--sub)}
+  .flow li.end .no{background:none}
+
+  .ex-box{border:1px solid var(--rule);border-radius:10px;padding:14px 16px 12px;background:#fbfdfa;margin:0 0 16px}
+  .ex-top{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--sub);margin-bottom:10px}
+  .ex-top b{color:var(--ink);font-size:14px}
+  .pair{display:grid;grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr);gap:8px;align-items:stretch;margin-bottom:10px}
+  .pair > div{border:1px solid var(--field);border-radius:8px;background:#fff;padding:8px 10px;font-size:13px}
+  .pair small{display:block;color:var(--sub);font-size:11.5px;margin-bottom:2px}
+  .pair .arrow{border:0;background:none;display:flex;align-items:center;justify-content:center;color:var(--sub);padding:0}
+  .hlt{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--sub);margin-bottom:10px}
+  .hlt .tag{border-radius:6px;padding:1px 8px;background:var(--gray-soft);color:var(--ink);font-weight:600}
+
+  .crit{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px;margin:0}
+  .crit dt{font-weight:700;font-size:14px;margin-bottom:2px}
+  .crit dd{margin:0;color:var(--sub);font-size:13.5px}
+  .crit em{font-style:normal;color:var(--ink);font-weight:600}
+
+  .why2{margin-top:20px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 16px;background:var(--brand-soft);border-radius:10px;padding:16px 20px;font-size:14.5px}
+  .why2 b{color:var(--brand-ink)}
+  .why2 p{margin:0}
+
+  details.allrules{margin-top:16px;background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:0 18px}
+  details.allrules summary{cursor:pointer;font-weight:600;padding:14px 0;color:var(--brand)}
+  details.allrules table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:13.5px}
+  details.allrules th{text-align:left;font-size:12.5px;color:var(--sub);font-weight:600;padding:6px 10px;border-bottom:1px solid var(--field)}
+  details.allrules td{padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+  details.allrules td:first-child{white-space:nowrap;font-weight:700}
+  details.allrules tr.grp td{background:var(--gray-soft);font-weight:700;color:var(--sub);font-size:12.5px;padding:5px 10px}
+
   @media (max-width:900px){
+    .ways{grid-template-columns:1fr}
     .hero{grid-template-columns:1fr;gap:36px;padding:40px 0}
     .hero h1{font-size:32px}
     .steps{grid-template-columns:1fr;gap:22px}
@@ -112,6 +176,14 @@
   }
   @media (max-width:560px){
     main{padding:0 16px}
+    .way{padding:20px 16px 16px}
+    .rgroups li{grid-template-columns:1fr}
+    .rgroups .eg{grid-column:1}
+    .crit{grid-template-columns:1fr}
+    .why2{grid-template-columns:1fr}
+    .pair{grid-template-columns:1fr}
+    .pair .arrow{transform:rotate(90deg);height:18px}
+    details.allrules td:first-child{white-space:normal}
     .hero h1{font-size:28px}
     .crf{font-size:13px}
     .crf .opt{display:none}
@@ -268,6 +340,108 @@
     </ol>
   </section>
 
+  <section class="block" id="method">
+    <h2>이렇게 점검해요</h2>
+    <p class="lead">두 단계로 봐요. 먼저 허가사항을 MedDRA PT 목록으로 바꾸고, 그다음 코딩시트 한 행씩 그 목록과 PT로 맞춰 봐요. AI는 쓰지 않아서 같은 파일을 넣으면 항상 같은 결과가 나와요.</p>
+
+    <div class="ways">
+      <article class="way">
+        <div class="way-head">
+          <div><span class="order">먼저 · 허가사항마다 한 번</span><h3>허가사항을 PT 목록으로</h3></div>
+          <span class="res green">PT 목록</span>
+        </div>
+        <p>허가사항에서 이상반응 용어를 찾아 MedDRA PT로 바꿔요. 용어마다 어느 항목·어느 문장에서 나왔는지도 같이 기억해서 REF에 써요.</p>
+        <ul class="rgroups">
+          <li><span class="nm">표<small>TABLE</small></span><span class="what">이상반응 항목 안의 표를 칸 단위로 읽어요. SOC·빈도도 같이 기억하고, 각주(*)에 나열된 용어도 같은 표 근거로 써요.</span>
+            <span class="eg"><span class="mini">장 / 가성-폐쇄 → <mark>장 가성-폐쇄</mark></span><span class="mini">간 기능 검사 수치 증가* → <mark>각주 6개</mark></span></span></li>
+          <li><span class="nm">본문<small>TEXT</small></span><span class="what">항목 &gt; 소항목 &gt; 소제목으로 문단을 나누고, 문장 안에서 MedDRA 한글 용어를 가장 긴 것부터 찾아요. 띄어쓰기는 무시해요.</span>
+            <span class="eg"><span class="mini">중성구감소증 → <mark>Neutropenia</mark></span><span class="mini">면역매개성 괴사성 근병증 → <mark>한 용어</mark></span></span></li>
+          <li><span class="nm">걸러내기<small>FILTER</small></span><span class="what">질환이 아닌 말은 빼요. 약 이름·꾸밈말, 일상어, 단어 중간 조각, 방향 없는 검사명이에요.</span>
+            <span class="eg"><span class="mini no">이뇨<mark>제</mark></span><span class="mini no">하거나 병용의 <mark>나병</mark></span><span class="mini no">폐질환이 <mark>의심</mark>되는</span></span></li>
+          <li><span class="nm">약한 근거<small>WEAK</small></span><span class="what">환자 상태를 말하는 문장에서만 나온 용어는 약한 근거로 표시해요.</span>
+            <span class="eg"><span class="mini am">위 식도 역류 질환이 <mark>있는 환자</mark>에게 주의</span></span></li>
+          <li><span class="nm">매핑<small>MAP</small></span><span class="what">MedDRA에 글자 그대로 없는 용어는 PT 후보를 제안하고, 사람이 한 번 확정하면 저장해서 다음부터 그대로 써요.</span>
+            <span class="eg"><span class="mini">저체온 → <mark>저체온증</mark></span><span class="mini">가려움증 → <mark>소양증</mark></span><span class="mini am">귀울림 → <mark>직접 입력</mark></span></span></li>
+        </ul>
+        <p class="foot">근거로 쓰는 항목: 이상반응 표 &gt; 이상반응 본문 &gt; 용법용량 &gt; 일반적 주의 &gt; 경고(임시). 신중투여·과량투여는 쓰지 않아요.</p>
+      </article>
+
+      <article class="way">
+        <div class="way-head">
+          <div><span class="order">그다음 · 코딩시트 행마다</span><h3>코딩시트 PT와 맞춰 보기</h3></div>
+          <span class="res amber">반영 · 확인필요 · 미반영</span>
+        </div>
+        <p>행마다 아래 질문을 위에서부터 묻고, 처음 "예"가 나오는 곳에서 판정이 끝나요.</p>
+        <ol class="flow">
+          <li><span class="no">1</span><span class="q">특수상황인가요?<small>AESPECIAL·AESS가 해당없음이 아님</small></span><span class="to amber">확인필요</span></li>
+          <li><span class="no">2</span><span class="q">코딩시트 PT를 MedDRA에서 못 찾나요?<small>영문 PT 이름으로 DICVER 버전 사전에서 찾음</small></span><span class="to amber">확인필요</span></li>
+          <li><span class="no">3</span><span class="q">허가사항에 같은 PT가 있나요?<small>약한 근거도, 확정 전 후보도 아닌 것</small></span><span class="to green">반영</span></li>
+          <li><span class="no">4</span><span class="q">같은 PT가 약한 근거·후보로만 있나요?</span><span class="to amber">확인필요</span></li>
+          <li><span class="no">5</span><span class="q">PT는 다르지만 HLT를 공유하나요?<small>Primary·Secondary 경로 모두</small></span><span class="to amber">확인필요</span></li>
+          <li class="end"><span class="no"></span><span class="q">모두 아니오</span><span class="to gray">미반영</span></li>
+        </ol>
+
+        <figure class="ex-box" aria-label="같은 HLT로 확인필요가 되는 예시">
+          <div class="ex-top"><b>5번 예시 · 같은 HLT</b><span>시알라나액 샘플</span></div>
+          <div class="pair">
+            <div><small>코딩시트 PT</small>Post procedural fever</div>
+            <div class="arrow" aria-hidden="true">↔</div>
+            <div><small>허가사항 표 1)</small>발열 (PT Pyrexia)</div>
+          </div>
+          <div class="hlt">공유하는 HLT <span class="tag">Febrile disorders</span> Secondary 경로 · 33개 PT 묶음</div>
+          <div class="note amber"><b>확인필요</b><span>PT는 다르지만 같은 HLT로 묶여요. REF 앞에 경로와 묶음 크기를 적어서 빨리 거를 수 있게 해요.</span></div>
+        </figure>
+
+        <dl class="crit">
+          <div><dt>PT 코드로 비교</dt><dd>글자가 아니라 MedDRA <em>PT 코드</em>로 비교해요. 행마다 DICVER 버전 사전을 써요.</dd></div>
+          <div><dt>근거는 하나만</dt><dd>여러 곳에 나오면 <em>우선순위가 가장 높은</em> 근거 하나를 REF에 적어요.</dd></div>
+          <div><dt>HLT는 모든 경로</dt><dd>Primary뿐 아니라 <em>Secondary</em>까지 비교해요. 사람이 반영한 건을 놓치지 않으려고요.</dd></div>
+          <div><dt>묶음 크기 표시</dt><dd>HLT에 PT가 많을수록 관련이 느슨해요. <em>185개 묶음</em>처럼 REF에 같이 적어요.</dd></div>
+        </dl>
+      </article>
+    </div>
+
+    <div class="why2">
+      <b>두 단계로 나눈 이유</b>
+      <p>허가사항은 약마다 한 번만 PT 목록으로 바꾸면, 코딩시트가 몇 행이든 연차가 바뀌든 같은 목록으로 판정할 수 있어요. 대신 허가사항 표현이 MedDRA와 다르면 목록에서 빠질 수 있어서, 사전에 없는 용어는 사람이 매핑을 확정하고 애매한 건 확인필요로 보내요.</p>
+    </div>
+
+    <details class="allrules">
+      <summary>규칙 전체 보기 (21개)</summary>
+      <table>
+        <thead><tr><th style="width:20%">규칙</th><th>내용</th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="2">허가사항 읽기 · 표</td></tr>
+          <tr><td>표 찾기</td><td>이상반응(이상사례) 항목 안에 있는 표를 이상반응 표로 읽어요. 다른 항목의 표(용량 조절표 등)는 본문처럼 읽어요.</td></tr>
+          <tr><td>열 역할</td><td>머리글과 칸 내용으로 SOC·빈도·용어 열을 정해요. %·명수처럼 숫자만 있는 열은 쓰지 않아요. 합쳐진 칸은 같은 값으로 채우고, 다음 쪽으로 이어지는 표는 앞 표의 열 역할을 이어받아요.</td></tr>
+          <tr><td>칸 나누기</td><td>쉼표로 나누되 괄호 안 쉼표는 나누지 않아요. 쉼표 없이 줄만 바뀌면 이어 붙여요. 빈도 말(흔하게·드물게 등), 용어 뒤의 (N명), 각주 표시는 떼요.</td></tr>
+          <tr><td>각주</td><td>표 바로 아래 각주가 용어 나열이면(예: *: 알라닌 아미노전이효소 증가, …) 같은 표 근거로 써요. 설명 문장인 각주는 쓰지 않아요.</td></tr>
+          <tr class="grp"><td colspan="2">허가사항 읽기 · 본문</td></tr>
+          <tr><td>문단 나누기</td><td>항목(2. 약물이상반응) &gt; 소항목(3) 주요 이상반응) &gt; 소제목 단위로 나눠요. 숫자 줄(1.00%(15/1,503명))은 항목 제목으로 보지 않아요.</td></tr>
+          <tr><td>근거로 쓰는 항목</td><td>이상반응·이상사례, 용법용량, 일반적 주의, 경고. 일반의약품의 "복용을 즉각 중지하고 … 상의할 것"은 이상반응으로 봐요.</td></tr>
+          <tr><td>용어 찾기</td><td>문장 안에서 MedDRA 한글 LLT를 가장 긴 것부터 찾아 PT로 바꿔요. 띄어쓰기·하이픈은 무시하고, 단어 중간의 한글 풀이 괄호(용혈성(적혈구 파괴성)빈혈)는 건너뛰어요.</td></tr>
+          <tr class="grp"><td colspan="2">걸러내기</td></tr>
+          <tr><td>일상어</td><td>지침, 자세, 신장, 주사, 검사, 입원, 치료, 투여, 의심, 분석, 질병, 가스, 사고 등은 사전에 있어도 질환으로 보지 않아요.</td></tr>
+          <tr><td>꾸밈말·약 이름</td><td>바로 뒤에 성·제·한·상이 붙으면 다른 말을 꾸미는 말로 봐요. 예: 이뇨제, 면역억제제, 불안정성, 반점상, 무반응한</td></tr>
+          <tr><td>단어 중간</td><td>단어 중간에서 시작하면 4글자 이상 한글만 인정해요. 영문 약어는 단어 경계에서 3글자 이상만 인정해요.</td></tr>
+          <tr><td>띄어쓰기 조각</td><td>띄어쓰기를 넘어 잡혔는데 마지막이 한 글자 조각이면 버려요. 예: 노출 증|가, 노인 환|자</td></tr>
+          <tr><td>반응이 아닌 PT</td><td>본문에서는 시술·사회 환경 SOC, 방향 없는 검사명(Alanine aminotransferase), 일반어(이상반응, 약물 상호 작용)는 빼요.</td></tr>
+          <tr class="grp"><td colspan="2">근거 강도와 매핑</td></tr>
+          <tr><td>약한 근거</td><td>문장에 "있는 환자", "가진 환자", "연구되지 않았다", "주의하여 사용", "예방" 등이 있으면 그 문장의 용어는 약한 근거예요.</td></tr>
+          <tr><td>매핑표</td><td>약마다 확정한 허가사항 용어 → PT 매핑이에요. "확정"만 반영 근거로 쓰고, "제안"이면 확인필요로 내요.</td></tr>
+          <tr><td>후보 제안</td><td>사전에 없는 용어는 변형 일치(끝의 증·성, 증가↔상승 등) &gt; 부분 일치 &gt; PT·LLT 이름 비슷함 순서로 후보 3개를 보여줘요.</td></tr>
+          <tr class="grp"><td colspan="2">행마다 판정</td></tr>
+          <tr><td>1 특수상황</td><td>AESPECIAL·AESS가 해당없음·빈칸·NA가 아니면 확인필요. 회사 판단 코멘트가 필요해서 자동으로 정하지 않아요.</td></tr>
+          <tr><td>2 PT 없음</td><td>코딩시트 PT를 고른 MedDRA 버전에서 찾지 못하면 확인필요.</td></tr>
+          <tr><td>3 같은 PT</td><td>허가사항에 같은 PT가 강한 근거로 있으면 반영. REF에 우선순위가 가장 높은 근거를 적어요.</td></tr>
+          <tr><td>4 약한 근거</td><td>같은 PT가 약한 근거나 확정 전 후보로만 있으면 확인필요.</td></tr>
+          <tr><td>5 같은 HLT</td><td>PT가 다르지만 HLT를 공유하면 확인필요. 강한 근거 &gt; Primary &gt; 우선순위 &gt; 작은 묶음 순으로 근거를 골라요.</td></tr>
+          <tr><td>6 미반영</td><td>위에 모두 해당하지 않으면 미반영, REF는 비워요.</td></tr>
+        </tbody>
+      </table>
+    </details>
+  </section>
+
   <section class="block">
     <h2>결과는 이렇게 나눠요</h2>
     <p class="lead">놓치는 건(실제로는 반영인데 미반영으로 나오는 경우)이 없도록, 애매한 건 모두 확인필요로 보내요.</p>
@@ -285,7 +459,7 @@
   <img src="img/becco-logo.png" alt="BeccoCRO" width="70" height="26">
   <span><b>쿼랑이</b> Data Management 검토 도우미</span>
   <span>문의 김지후</span>
-  <span>2026-11-19 버전</span>
+  <span>2026-11-20 버전</span>
 </div></footer>
 </body>
 </html>
