@@ -273,7 +273,7 @@
   var UNIT_OK = ['mg', 'mcg', 'g', 'ml', 'IU', 'tab', 'cap', 'amp', 'vial', 'drop', 'pack', 'puff', 'patch', 'bag', 'syringe', 'bottle', 'FTU', 'ea', 'kit', 'l', 'meq', 'mmol', 'dose', 'UK', 'box', 'apply', '회', 'supp'];
   var FREQ_OK = ['QD', 'BID', 'TID', 'QID', 'PRN', 'ONCE', 'QW', 'QM', 'Q2M', 'Q3M', 'Q6M', 'Q2W', 'Q3W', 'Q3D', 'Q48H', 'QOD', 'Q4H', 'Q6H', 'Q8H', 'Q12H'];
   var ROUTE_OK = ['PO', 'IV', 'IM', 'SC', 'INHALATION', 'OPHTHALMIC', 'TOPICAL', 'TRANSDERMAL', 'NASAL', 'INTRA-ARTICULAR', 'VAGINAL', 'SUBLINGUAL', 'GARGLE', 'INTRAVITREAL', 'OTIC', 'RECTAL', 'INTRADERMAL', 'INTRAVESICAL'];
-  var LEVEL = { '오류': 3, '확인 필요': 2, '판정 불가': 1, '정상': 0 };
+  var LEVEL = { '오류': 3, '확인 필요': 2, '규칙만 통과': 1, '정상': 0 };
 
   function pct(n, d) { return Math.round(n / d * 100) + '%'; }
   function topVals(obj, n) {
@@ -427,14 +427,14 @@
       rare(p.route, r.route, { code: 'ROUTE', ko: '경로예요' }, routeBad);
     }
     var level = issues.reduce(function (m, x) { return LEVEL[x.level] > LEVEL[m] ? x.level : m; }, '정상');
-    if (level === '정상' && !judged) level = '판정 불가';
+    if (level === '정상' && !judged) level = '규칙만 통과'; // 규칙 점검은 통과, 기준사전 비교는 못 함 (11-24 이름 변경: 판정 불가 → 규칙만 통과)
     return { level: level, issues: issues, key: key, product: p, judged: judged,
       note: !judged ? (p ? '학습 피험자 ' + p.nSubj + '명 (' + minSubj + '명 미만)' : '학습 데이터에 없는 제품') : '' };
   }
 
   function validate(file, dic) {
     var out = file.rows.map(function (r) { r.hasFreq = file.hasFreq; var res = checkRow(r, dic); res.row = r; return res; });
-    var sum = { '오류': 0, '확인 필요': 0, '판정 불가': 0, '정상': 0 };
+    var sum = { '오류': 0, '확인 필요': 0, '규칙만 통과': 0, '정상': 0 };
     out.forEach(function (x) { sum[x.level]++; });
     return { results: out, summary: sum };
   }

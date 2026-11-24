@@ -263,7 +263,7 @@
     var m = d.meta, used = m.files.filter(function(f){ return f.used; }).map(function(f){ return f.label; });
     var dt = new Date(m.created);
     $('dictInfo').innerHTML = '<span><b>기준사전 사용 중</b></span><span class="muted">' + dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0') +
-      ' 만듦 · 과제 ' + used.length + '개(' + esc(used.join(', ')) + ') · 제품 ' + fmt(m.stats.products) + '개 · 판정 가능 ' + fmt(m.stats.judgedProducts) + '개 · 기준 ' + m.params.minSubj + '명 / ' + Math.round(m.params.rareCut * 100) + '%</span>';
+      ' 만듦 · 과제 ' + used.length + '개(' + esc(used.join(', ')) + ') · 제품 ' + fmt(m.stats.products) + '개 · 비교 가능 ' + fmt(m.stats.judgedProducts) + '개 · 기준 ' + m.params.minSubj + '명 / ' + Math.round(m.params.rareCut * 100) + '%</span>';
     $('dictInfo').classList.remove('hidden');
     $('dropDict').innerHTML = '다른 기준사전으로 바꾸려면 끌어다 놓거나 <b>클릭해서 선택</b>하세요';
     updateRun();
@@ -327,7 +327,7 @@
     $('runMsg').textContent = '검사를 마쳤어요. 전체 ' + fmt(results.length) + '행';
   };
 
-  var LEVELS = [['오류','오류','근거가 확실한 문제'],['확인 필요','확인','이 제품에서 드문 값'],['판정 불가','판정','학습 자료가 부족한 제품'],['정상','정상','문제 없음']];
+  var LEVELS = [['오류','오류','근거가 확실한 문제'],['확인 필요','확인','이 제품에서 드문 값'],['규칙만 통과','판정','기준사전과 비교 못 한 제품'],['정상','정상','문제 없음']];
   function renderCards(){
     var cnt = {}; LEVELS.forEach(function(l){ cnt[l[0]] = 0; });
     results.forEach(function(x){ cnt[x.level]++; });
@@ -352,7 +352,7 @@
       var hay = (x.file + ' ' + x.row.raw + ' ' + x.row.subjRaw + ' ' + x.issues.map(function(i){ return i.rule; }).join(' ')).toUpperCase();
       return hay.indexOf(q) >= 0;
     });
-    var order = { '오류': 0, '확인 필요': 1, '판정 불가': 2, '정상': 3 };
+    var order = { '오류': 0, '확인 필요': 1, '규칙만 통과': 2, '정상': 3 };
     list.sort(function(a,b){ return order[a.level] - order[b.level] || a.file.localeCompare(b.file) || a.row.rowNo - b.row.rowNo; });
     var show = list.slice(0, 300);
     $('resRows').innerHTML = show.map(function(x){
@@ -406,7 +406,7 @@
       x.issues.forEach(function(i){ (i.fields || []).forEach(function(f){ hl[f] = 1; }); });
       var raw = { trt: r.raw, dose: r.rawDose, unit: r.rawUnit, freq: r.hasFreq ? r.rawFreq : '(컬럼 없음)', route: r.rawRoute };
       var rules = x.issues.map(function(i){ return i.rule; }).join('\n');
-      var msgs = x.issues.length ? x.issues.map(function(i){ return i.msg; }).join('\n') : (x.level === '판정 불가' ? '판정 불가: ' + x.note : '');
+      var msgs = x.issues.length ? x.issues.map(function(i){ return i.msg; }).join('\n') : (x.level === '규칙만 통과' ? '규칙만 통과 (기준사전 비교 못 함: ' + x.note + ')' : '');
       var refs = x.issues.map(function(i){ return i.ref; }).filter(Boolean).join('\n');
       var vals = [r.subjRaw, r.seq, raw.trt, raw.dose, raw.unit, raw.freq, raw.route, rules, msgs, refs, ''];
       aoa.push(COLS.map(function(c, j){

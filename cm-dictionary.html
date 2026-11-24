@@ -180,7 +180,7 @@
       <h3 style="font-size:15px;margin:22px 0 8px">학습된 제품 미리보기</h3>
       <div class="row">
         <input class="search" id="q" placeholder="제품명, 성분명, 품목코드로 찾기">
-        <label class="muted"><input type="checkbox" id="onlyJudged" checked> 판정 가능한 제품만</label>
+        <label class="muted"><input type="checkbox" id="onlyJudged" checked> 비교 가능한 제품만</label>
       </div>
       <table><thead><tr><th style="width:24%">제품</th><th style="width:8%">피험자</th><th>용량 (환산 후)</th><th style="width:16%">빈도</th><th style="width:14%">경로</th></tr></thead><tbody id="prodRows"></tbody></table>
       <p class="muted" id="prodMore"></p>
@@ -262,8 +262,8 @@
       ['학습에 쓴 파일', used + '개'],
       ['학습한 행', fmt(s.rows)],
       ['제품 수', fmt(s.products)],
-      ['판정 가능 제품', fmt(s.judgedProducts) + '개', '피험자 ' + minSubj + '명 이상'],
-      ['판정 가능 행', Math.round(s.judgedRows / Math.max(1, s.rows) * 100) + '%', fmt(s.judgedRows) + '행'],
+      ['비교 가능 제품', fmt(s.judgedProducts) + '개', '피험자 ' + minSubj + '명 이상'],
+      ['비교 가능 행', Math.round(s.judgedRows / Math.max(1, s.rows) * 100) + '%', fmt(s.judgedRows) + '행'],
       ['mg 환산한 행', fmt(s.converted), 'tab·cap × 함량']
     ];
     $('stats').innerHTML = cards.map(function(c){ return '<div class="stat"><div class="v">' + c[1] + '</div><div class="k">' + c[0] + (c[2] ? ' · ' + c[2] : '') + '</div></div>'; }).join('');
