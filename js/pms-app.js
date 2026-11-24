@@ -54,6 +54,13 @@
 
   // ------------------------------------------------------------ 1. MedDRA (쿼랑이 meddra/ 폴더)
   var MODE_KEY = 'pms.meddraMode';
+  // 제외한 용어: 약과 상관없이 이 브라우저의 모든 과제에 적용 {norm(용어): {term, from, at}}
+  var EX_KEY = 'pms.excludedTerms';
+  S.excluded = (function () { try { return JSON.parse(localStorage.getItem(EX_KEY) || '{}') || {}; } catch (e) { return {}; } })();
+  function saveEx() { try { localStorage.setItem(EX_KEY, JSON.stringify(S.excluded)); } catch (e) {} }
+  function isExcluded(t) { return !!S.excluded[PMS.norm(t)]; }
+  function exclude(t) { S.excluded[PMS.norm(t)] = { term: t, from: (S.label && S.label.product) || '', at: new Date().toISOString().slice(0, 10) }; delete S.termMap[t]; }
+  function unexclude(t) { delete S.excluded[PMS.norm(t)]; }
   var vcmp = function (a, b) { var x = a.split('.').map(Number), y = b.split('.').map(Number); return x[0] - y[0] || x[1] - y[1]; };
 
   async function loadCatalog() {
@@ -276,7 +283,11 @@
     if (S.versions.indexOf(vs.main) < 0) { renderMap(); return; }
     var md;
     try { md = await getMd(vs.main); } catch (e) { idle(); $('mdMsg').innerHTML = '<span style="color:var(--err)">' + esc(e.message) + '</span>'; return; }
-    var r = PMS.labelTerms(S.label, md, S.termMap, S.scope);
+    // 예전(약별) '제외'는 모든 약 공통 목록으로 옮김
+    var moved = false;
+    Object.keys(S.termMap).forEach(function (t) { if (S.termMap[t][0] && S.termMap[t][0][1] === '제외') { exclude(t); moved = true; } });
+    if (moved) { saveEx(); saveMap(); }
+    var r = PMS.labelTerms(S.label, md, S.termMap, S.scope, S.excluded);
     idle();
     // 저장된 매핑표 정리: 빈도 단어, 그리고 이제 나오지 않는 '제안' 항목은 지움 (확정한 항목은 유지)
     //  - 확정한 항목도 이 허가사항에서 더 이상 나오지 않는 용어면 지움 (예: 예전에 잘못 쪼개진 '가성-폐쇄')
@@ -286,13 +297,13 @@
     Object.keys(S.termMap).forEach(function (t) {
       var rows = S.termMap[t] || [];
       var allProposed = rows.every(function (x) { return x[1] !== '확정'; });
-      if (PMS.isFreqWord(t) || (allProposed && !now[t]) || !inLabel[t]) { delete S.termMap[t]; removed = true; }
+      if (PMS.isFreqWord(t) || (allProposed && !now[t]) || !inLabel[t] || isExcluded(t)) { delete S.termMap[t]; removed = true; }
     });
     var added = removed;
     r.unmapped.forEach(function (u) {
-      if (!S.termMap[u.term] && u.candidates && u.candidates.length) { S.termMap[u.term] = [[u.candidates[0].ptEn, '제안']]; added = true; }
+      if (!S.termMap[u.term] && !u.excluded && u.candidates && u.candidates.length) { S.termMap[u.term] = [[u.candidates[0].ptEn, '제안']]; added = true; }
     });
-    if (added) { saveMap(); r = PMS.labelTerms(S.label, md, S.termMap, S.scope); }
+    if (added) { saveMap(); r = PMS.labelTerms(S.label, md, S.termMap, S.scope, S.excluded); }
     S.view = { md: md, ver: vs.main, terms: r.terms, unmapped: r.unmapped };
     renderMap(); renderTermList();
     if (S.ran) run();
@@ -317,8 +328,26 @@
     var md = v.md, where = {};
     v.terms.forEach(function (t) { if (t.section === '이상반응 표' && !where[t.term]) where[t.term] = t; });
     v.unmapped.forEach(function (u) { where[u.term] = u; });
+    var excluded = [];
+    v.unmapped.forEach(function (u) { if (u.excluded && excluded.indexOf(u.term) < 0) excluded.push(u.term); });
     var terms = Object.keys(S.termMap);
+    var allEx = Object.keys(S.excluded).length;
+    var exHtml = allEx ? '<details class="exList" style="margin-top:12px"><summary>제외한 용어: 이 허가사항 ' + excluded.length + '개 · 모든 약 ' + allEx + '개 ' +
+      '<span class="muted">— 근거로 쓰지 않고, 다른 과제에서 나와도 묻지 않아요</span></summary>' +
+      '<div style="margin-top:8px">' + (excluded.length ? excluded.map(function (t) {
+        var u = where[t], pos = !u ? '' : u.how === '표 각주' ? '이상반응 표' : u.section, ex = S.excluded[PMS.norm(t)] || {};
+        return '<div class="bundle"><span class="tag t-제외">제외</span><b>' + esc(t) + '</b><span class="muted">' + esc(pos) +
+          (ex.from && ex.from !== (S.label && S.label.product) ? ' · ' + esc(ex.from) + '에서 제외' : '') + '</span>' +
+          '<button class="ghost mini" data-act="restore" data-term="' + esc(t) + '">되돌리기</button></div>';
+      }).join('') : '<span class="muted">이 허가사항에는 제외한 용어가 없어요.</span>') +
+      '<div class="row" style="margin-top:10px"><button class="ghost mini" data-act="ex-export">제외 목록 CSV 저장 (' + allEx + '개)</button>' +
+      '<button class="ghost mini" data-act="ex-import">제외 목록 CSV 불러오기</button>' +
+      '<span class="muted">목록은 이 브라우저에 저장돼요. 팀 전체에 적용하려면 CSV를 김지후에게 보내 주세요.</span></div></div></details>' : '';
     if (!terms.length) {
+      if (allEx) {
+        $('mapBody').innerHTML = '<div class="dictInfo"><b>확인할 매핑이 없어요</b><span class="muted">' + (excluded.length ? '남은 용어는 모두 확정하거나 제외했어요.' : '허가사항 용어가 모두 MedDRA에 바로 연결돼요.') + '</span></div>' + exHtml;
+        $('mapState').innerHTML = '<span class="tag t-반영">확인 완료</span>'; return;
+      }
       $('mapBody').innerHTML = '<div class="dictInfo"><b>확인할 매핑이 없어요</b><span class="muted">허가사항 용어가 모두 MedDRA에 바로 연결돼요.</span></div>';
       $('mapState').innerHTML = '<span class="tag t-반영">확인 완료</span>'; return;
     }
@@ -341,12 +370,13 @@
       return '<tr><td style="width:22%"><b>' + esc(t) + '</b><div class="muted">' + esc(pos) + '</div></td>' +
         '<td style="width:34%">' + sel + '<div class="muted" style="margin-top:4px">' + esc(krOf(main[0])) + '</div></td>' +
         '<td style="width:10%;white-space:nowrap"><span class="tag t-' + esc(main[1]) + '">' + esc(main[1]) + '</span><br><button class="ghost mini" style="margin-top:6px" data-act="toggle" data-term="' + esc(t) + '">' +
-        (main[1] === '확정' ? '확정 취소' : '확정') + '</button></td>' +
+        (main[1] === '확정' ? '확정 취소' : '확정') + '</button>' +
+        (main[1] === '확정' ? '' : '<br><button class="ghost mini" style="margin-top:4px" data-act="exclude" data-term="' + esc(t) + '" title="이 용어를 근거로 쓰지 않고, 다음에도 묻지 않아요">제외</button>') + '</td>' +
         '<td>' + (extra || '<span class="muted">없음</span>') + '<div class="addrow"><input data-act="addpt" data-term="' + esc(t) + '" placeholder="PT 영문명 (예: Aspartate aminotransferase increased)"><button class="ghost mini" data-act="add" data-term="' + esc(t) + '">추가</button></div></td></tr>';
     });
     $('mapBody').innerHTML = '<div class="tableWrap" style="max-height:none"><table class="maptbl"><thead><tr><th>허가사항 용어</th><th>대표 PT</th><th>상태</th><th>묶음 PT (같은 근거로 반영)</th></tr></thead><tbody>' +
       rows.join('') + '</tbody></table></div>' +
-      (pending ? '<div class="row" style="margin-top:10px"><button class="ghost" data-act="confirm-all">후보 전체 확정</button><span class="muted">후보를 하나씩 확인한 뒤에 눌러 주세요.</span></div>' : '');
+      (pending ? '<div class="row" style="margin-top:10px"><button class="ghost" data-act="confirm-all">후보 전체 확정</button><button class="ghost" data-act="exclude-rest">확정 안 한 용어 모두 제외</button><span class="muted">맞는 후보만 확정한 뒤, 나머지를 한 번에 제외할 수 있어요.</span></div>' : '') + exHtml;
   }
 
   function onMap(e) {
@@ -371,7 +401,21 @@
       if (!code) { inp.classList.add('bad'); inp.title = 'MedDRA에 없는 PT예요'; return; }
       S.termMap[t].push([md.ptEn.get(code), '확정']);
     } else if (e.type === 'click' && act === 'confirm-all') {
-      Object.keys(S.termMap).forEach(function (k) { S.termMap[k].forEach(function (r) { r[1] = '확정'; }); });
+      Object.keys(S.termMap).forEach(function (k) { if (S.termMap[k][0][1] !== '제외') S.termMap[k].forEach(function (r) { r[1] = '확정'; }); });
+    } else if (e.type === 'click' && act === 'exclude') {
+      exclude(t); saveEx();
+    } else if (e.type === 'click' && act === 'restore') {
+      unexclude(t); saveEx();
+    } else if (e.type === 'click' && act === 'exclude-rest') {
+      var rest = Object.keys(S.termMap).filter(function (k) { return S.termMap[k][0][1] !== '확정'; });
+      if (!rest.length || !confirm('확정하지 않은 용어 ' + rest.length + '개를 제외할까요?\n제외한 용어는 근거로 쓰지 않고, 다른 과제(약)에서 나와도 묻지 않아요. (아래 "제외한 용어"에서 되돌릴 수 있어요)')) return;
+      rest.forEach(function (k) { exclude(k); }); saveEx();
+    } else if (e.type === 'click' && act === 'ex-export') {
+      var lines = ['제외 용어,제외한 약,날짜'].concat(Object.keys(S.excluded).map(function (k) { var x = S.excluded[k];
+        return [x.term, x.from || '', x.at || ''].map(function (c) { return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(','); }));
+      saveBlob(new Blob(['\ufeff' + lines.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' }), 'pms_제외용어.csv'); return;
+    } else if (e.type === 'click' && act === 'ex-import') {
+      $('pickEx').click(); return;
     } else return;
     saveMap(); prepare();
   }
@@ -406,7 +450,7 @@
     try {
       for (var i = 0; i < vs.all.length; i++) {
         var md = await getMd(vs.all[i]);
-        byVer[vs.all[i]] = { md: md, terms: PMS.labelTerms(S.label, md, S.termMap, S.scope).terms };
+        byVer[vs.all[i]] = { md: md, terms: PMS.labelTerms(S.label, md, S.termMap, S.scope, S.excluded).terms };
       }
     } catch (e) { idle(); $('runMsg').innerHTML = '<span style="color:var(--err)">' + esc(e.message) + '</span>'; return; }
     idle();
@@ -515,6 +559,13 @@
       ('term_map_' + ((S.label && S.label.product) || 'label') + '.csv').replace(/[\\/:*?"<>|]/g, '_'));
   };
   $('mapImport').onclick = function () { $('pickMap').click(); };
+  var pickEx = document.createElement('input'); pickEx.type = 'file'; pickEx.accept = '.csv'; pickEx.id = 'pickEx'; pickEx.hidden = true; document.body.appendChild(pickEx);
+  pickEx.onchange = async function () {
+    var f = pickEx.files[0]; pickEx.value = ''; if (!f) return;
+    var rows = PMS.parseTermMapCsv(await f.text()), n = 0;   // 첫 칸 = 용어 (머리글 1줄 건너뜀)
+    Object.keys(rows).forEach(function (t) { if (t && !isExcluded(t)) { S.excluded[PMS.norm(t)] = { term: t, from: rows[t][0][0] || '', at: rows[t][0][1] || '' }; n++; } });
+    saveEx(); $('mapSaved').textContent = f.name + '에서 제외 용어 ' + n + '개를 더했어요.'; prepare();
+  };
   $('pickMap').onchange = async function () {
     var f = $('pickMap').files[0]; $('pickMap').value = ''; if (!f) return;
     S.termMap = PMS.parseTermMapCsv(await f.text());

@@ -53,6 +53,8 @@
   .maptbl select{width:100%}
   .maptbl input.bad{border-color:var(--err);background:var(--err-soft)}
   .addrow{display:flex;gap:6px;margin-top:6px}.addrow input{flex:1;min-width:0}
+  .exList summary{cursor:pointer;font-weight:600}
+  .exList .t-제외{background:#eef0ee;color:#667}
   .bundle{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px}
   .mini{padding:4px 10px;font-size:13px;border-radius:7px}
   .flip{color:var(--err);font-weight:700}
@@ -219,7 +221,7 @@
 
   <section class="step">
     <h2><span class="num">4</span>허가사항 용어 매핑 확인 <span id="mapState"></span></h2>
-    <p class="hint">허가사항에 있지만 MedDRA에 글자 그대로 없는 용어예요. 후보 PT가 맞으면 <b>확정</b>을 눌러 주세요. 확정한 것만 반영 근거로 쓰고, 확정 전에는 확인필요로 나와요. 한 용어에 PT를 추가하면 <b>묶음</b>이 돼요 (예: 간 기능 검사 수치 증가 → AST 증가). 매핑은 약마다 이 브라우저에 저장돼요.</p>
+    <p class="hint">허가사항에 있지만 MedDRA에 글자 그대로 없는 용어예요. 후보 PT가 맞으면 <b>확정</b>을, 질환명이 아니거나 근거로 쓰지 않을 용어면 <b>제외</b>를 눌러 주세요. 확정한 것만 반영 근거로 쓰고, 확정 전에는 확인필요로 나와요. 제외한 용어는 근거로 쓰지 않고, <b>다른 과제(약)에서 나와도</b> 다시 묻지 않아요. 한 용어에 PT를 추가하면 <b>묶음</b>이 돼요 (예: 간 기능 검사 수치 증가 → AST 증가). 매핑은 약마다 이 브라우저에 저장돼요.</p>
     <div id="mapBody"><p class="muted" style="margin:0">MedDRA 사전과 허가사항 PDF가 준비되면 여기에 표시돼요.</p></div>
     <div class="row" style="margin-top:12px">
       <button class="ghost" id="mapExport" disabled>매핑표 CSV 저장</button>
@@ -275,8 +277,8 @@
 <script src="js/jszip.min.js"></script>
 <script src="js/pdf.min.js"></script>
 <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/pdf.worker.min.js';</script>
-<script src="js/pms-core.js?v=20261120-1"></script>
-<script src="js/xlsx-patch.js?v=20261120-1"></script>
-<script src="js/pms-app.js?v=20261120-1"></script>
+<script src="js/pms-core.js?v=20261120-3"></script>
+<script src="js/xlsx-patch.js?v=20261120-3"></script>
+<script src="js/pms-app.js?v=20261120-3"></script>
 </body>
 </html>

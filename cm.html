@@ -341,12 +341,12 @@
         </div>
         <p>약의 성질상 맞을 수 없는 조합을 미리 정해 두고 찾아요. 처음 나온 제품에도 똑같이 적용돼요.</p>
         <ul class="rgroups">
-          <li><span class="nm">형식<small>STRUCT</small></span><span class="what">용량이 숫자가 아니거나, 필수값이 비었거나, 정해진 목록에 없는 단위·빈도·경로</span>
-            <span class="eg"><span class="mini">용량 <mark>1/2</mark></span><span class="mini">단위 <mark>알</mark></span><span class="mini">빈도 <mark>5~6회</mark></span></span></li>
+          <li><span class="nm">형식<small>STRUCT</small></span><span class="what">용량이 숫자만으로 되어 있지 않거나, 필수값이 비었거나, 정해진 목록에 없는 단위·빈도·경로</span>
+            <span class="eg"><span class="mini">용량 <mark>1/2</mark></span><span class="mini">단위 <mark>알</mark></span><span class="mini">빈도 <mark>5~6회</mark></span><span class="mini">용량 <mark>20mg</mark></span></span></li>
           <li><span class="nm">제형<small>FORM</small></span><span class="what">제품명 끝(정·캡슐·주)과 단위·경로가 맞지 않음</span>
             <span class="eg"><span class="mini">레토프라 정 · 1 <mark>cap</mark></span><span class="mini">페니라민 주사 · <mark>PO</mark></span></span></li>
           <li><span class="nm">단위와 경로<small>UNIT</small></span><span class="what">단위로 보면 불가능한 경로</span>
-            <span class="eg"><span class="mini">1 tab · <mark>SC</mark></span><span class="mini">2 puff · <mark>PO</mark></span></span></li>
+            <span class="eg"><span class="mini">1 tab · <mark>SC</mark></span><span class="mini">2 puff · <mark>PO</mark></span><span class="mini">1 좌약 · <mark>PO</mark></span></span></li>
           <li><span class="nm">제품명과 경로<small>NAME</small></span><span class="what">점안제·흡입제·패취·좌제처럼 제품 종류로 정해지는 경로와 다름</span>
             <span class="eg"><span class="mini">Hyabak eye drop · <mark>TOPICAL</mark></span><span class="mini">듀로제식 패취 · <mark>PO</mark></span></span></li>
           <li><span class="nm">함량<small>DOSE</small></span><span class="what">제품명의 함량과 1회 용량이 10배 이상 차이 나거나, 정·캡슐을 한 번에 10개 이상</span>
@@ -387,14 +387,15 @@
     </div>
 
     <details class="allrules">
-      <summary>룰 전체 보기 (25개)</summary>
+      <summary>룰 전체 보기 (26개)</summary>
       <table>
+        <caption style="caption-side:top;text-align:left;color:var(--sub);font-size:13px;padding:0 0 10px">단위와 경로는 먼저 표준 단위·표준 경로로 바꾼 뒤 점검해요. 예: ampule → amp, 좌제 → supp, 항문 → RECTAL, 피부 → TOPICAL</caption>
         <thead><tr><th style="width:20%">룰</th><th>내용</th><th style="width:12%">판정</th></tr></thead>
         <tbody>
           <tr class="grp"><td colspan="3">1단계 · 형식</td></tr>
-          <tr><td>STRUCT-01</td><td>용량이 숫자가 아니거나 0 이하예요. 예: "1/2", "1~2", 엑셀이 날짜로 바꾼 "01월 02일". UK는 허용해요.</td><td>오류</td></tr>
+          <tr><td>STRUCT-01</td><td>용량(CMDOSE)은 0.5, 12처럼 숫자만 입력해야 해요. 숫자 형식이 아니거나 0 이하면 오류예요. 예: "1/2", "1~2", ".5", "5.", "0,5", "1,000", "05", "20mg", 엑셀이 날짜로 바꾼 "01월 02일". UK·unk·unknown·모름은 허용해요.</td><td>오류</td></tr>
           <tr><td>STRUCT-02</td><td>필수값(용량·단위·빈도·경로)이 비어 있어요. 빈도 컬럼이 없는 파일은 빈도를 검사하지 않아요.</td><td>오류</td></tr>
-          <tr><td>STRUCT-03</td><td>허용 단위 목록에 없는 단위예요. 예: 알, 스푼. box·apply·회는 허용해요.</td><td>오류</td></tr>
+          <tr><td>STRUCT-03</td><td>입력한 단위를 표준 단위로 바꾼 뒤, 허용 단위 목록에 없으면 오류예요. 예: 알, 스푼. box·apply·회·좌약(supp)은 허용해요. milligram·밀리그램·microgram·밀리리터처럼 풀어 쓴 단위와 "모름"(UK로 봄)도 인정해요.</td><td>오류</td></tr>
           <tr><td>STRUCT-04</td><td>빈도·경로가 표준 표기가 아니에요. 예: "5~6회", "하루한번", 경로 "주사"</td><td>오류</td></tr>
           <tr class="grp"><td colspan="3">1단계 · 제형</td></tr>
           <tr><td>FORM-01</td><td>제품명이 "정" 또는 영문 tab으로 끝나는데 단위가 캡슐(cap)이에요. 예: 레토프라 정 10mg 1 cap</td><td>오류</td></tr>
@@ -403,14 +404,15 @@
           <tr><td>FORM-04</td><td>제품명이 정·캡슐로 끝나는 고형제인데 단위가 ml·drop·puff예요. 예: 레토프라 정 10mg 5 ml</td><td>오류</td></tr>
           <tr class="grp"><td colspan="3">1단계 · 단위와 경로</td></tr>
           <tr><td>UNIT-01</td><td>단위가 tab인데 경로가 PO·SUBLINGUAL·VAGINAL이 아니거나, cap인데 PO·VAGINAL·INHALATION이 아니에요. 예: 1 tab SC</td><td>오류</td></tr>
-          <tr><td>UNIT-02</td><td>단위가 amp·vial·syringe·bag(주사 단위)인데 경로가 PO·TOPICAL이에요. 흡입·코세척 앰플은 허용해요.</td><td>오류</td></tr>
+          <tr><td>UNIT-02</td><td>입력한 단위를 표준 단위로 바꾼 뒤, 주사 단위(amp·vial·syringe·bag)인데 경로가 PO·TOPICAL이면 오류예요. ampule·ample·앰플은 amp로, syr·syrn은 syringe로 봐요. 흡입·코세척 앰플은 허용해요.</td><td>오류</td></tr>
           <tr><td>UNIT-03</td><td>단위가 puff인데 경로가 INHALATION·NASAL·SUBLINGUAL이 아니에요. 예: 2 puff PO</td><td>오류</td></tr>
           <tr><td>UNIT-04</td><td>단위가 drop인데 경로가 IV·IM·SC예요.</td><td>오류</td></tr>
+          <tr><td>UNIT-05</td><td>단위가 좌약(supp·suppository·좌약·좌제)인데 경로가 RECTAL·VAGINAL이 아니에요. 항문·직장은 RECTAL로, 질·질내는 VAGINAL로 봐요. 예: 1 suppository PO</td><td>오류</td></tr>
           <tr class="grp"><td colspan="3">1단계 · 제품명과 경로</td></tr>
           <tr><td>NAME-01</td><td>점안제(점안·안약·eye drop·opht)인데 경로가 OPHTHALMIC이 아니에요.</td><td>오류</td></tr>
           <tr><td>NAME-02</td><td>비강 제품(나잘·nasal·비강)인데 경로가 NASAL이 아니에요. 예: 나잘스프레이 Inhalation</td><td>확인 필요</td></tr>
           <tr><td>NAME-03</td><td>흡입제(흡입·~할러·엘립타·네뷸 등)인데 경로가 INHALATION이 아니에요.</td><td>오류</td></tr>
-          <tr><td>NAME-04</td><td>패취제(패취·패치·플라스타)인데 경로가 TRANSDERMAL·TOPICAL이 아니에요.</td><td>오류</td></tr>
+          <tr><td>NAME-04</td><td>패취제(패취·패치·플라스타)인데 경로가 TRANSDERMAL·TOPICAL이 아니에요. skin·피부는 TOPICAL로 봐요.</td><td>오류</td></tr>
           <tr><td>NAME-05</td><td>시럽·현탁액·내복액(경구 액제)인데 경로가 PO가 아니에요. 점안·비강·주사 현탁액은 제외해요.</td><td>오류</td></tr>
           <tr><td>NAME-06</td><td>연고·크림·로션(외용제)인데 경로가 PO예요. 먹는 겔(알마겔 등) 때문에 "겔"은 보지 않아요.</td><td>오류</td></tr>
           <tr><td>NAME-07</td><td>좌제·좌약인데 경로가 RECTAL·VAGINAL이 아니에요.</td><td>오류</td></tr>
@@ -444,7 +446,7 @@
   <img src="img/becco-logo.png" alt="BeccoCRO" width="70" height="26">
   <span><b>쿼랑이</b> Data Management 검토 도우미</span>
   <span>문의 김지후</span>
-  <span>2026-11-20 버전</span>
+  <span>2026-11-23 버전</span>
 </div></footer>
 </body>
 </html>

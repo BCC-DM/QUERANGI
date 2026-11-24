@@ -29,6 +29,7 @@
     for (var i = 0; i < wb.SheetNames.length; i++) {
       var ws = wb.Sheets[wb.SheetNames[i]];
       var aoa = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: null });
+      var aoaRaw = null; // 셀 실제 값 (숫자 칸이 "1,000"처럼 서식만 붙은 경우 구분용)
       for (var r = 0; r < Math.min(10, aoa.length); r++) {
         var hdr = (aoa[r] || []).map(function (h) { return h == null ? '' : String(h).trim().toUpperCase(); });
         if (hdr.indexOf('CMTRT') >= 0) {
@@ -40,7 +41,8 @@
             }
           });
           // DOSE 같은 합친 값("20 mg")보다 숫자 전용 컬럼(CMDOSE)을 우선
-          return { sheet: wb.SheetNames[i], header: hdr, map: map, rows: aoa.slice(r + 1), headerRow: r + 1 };
+          aoaRaw = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
+          return { sheet: wb.SheetNames[i], header: hdr, map: map, rows: aoa.slice(r + 1), rawRows: aoaRaw.slice(r + 1), headerRow: r + 1 };
         }
       }
     }
@@ -52,13 +54,19 @@
     tab: 'tab', tablet: 'tab', tabs: 'tab', t: 'tab', '정': 'tab',
     cap: 'cap', capsule: 'cap', caps: 'cap', '캡슐': 'cap',
     amp: 'amp', ampule: 'amp', ampoule: 'amp', ample: 'amp', '앰플': 'amp',
-    ml: 'ml', cc: 'ml', mcg: 'mcg', 'μg': 'mcg', 'µg': 'mcg', ug: 'mcg', '㎍': 'mcg',
+    ml: 'ml', cc: 'ml', mcg: 'mcg', microgram: 'mcg', micrograms: 'mcg', 'μg': 'mcg', 'µg': 'mcg', ug: 'mcg', '㎍': 'mcg',
     mg: 'mg', '㎎': 'mg', g: 'g', iu: 'IU', unit: 'IU', units: 'IU', u: 'IU',
+    // 풀어 쓴 단위 (11-23 지후 결정)
+    milligram: 'mg', milligrams: 'mg', '밀리그램': 'mg', gram: 'g', grams: 'g', '그램': 'g', '마이크로그램': 'mcg',
+    milliliter: 'ml', milliliters: 'ml', millilitre: 'ml', millilitres: 'ml', '밀리리터': 'ml', '㎖': 'ml',
+    liter: 'l', liters: 'l', litre: 'l', litres: 'l', '리터': 'l',
+    'international unit': 'IU', 'international units': 'IU', '국제단위': 'IU', '단위': 'IU',
     drop: 'drop', drops: 'drop', gtt: 'drop', pack: 'pack', pk: 'pack', pkg: 'pack', '포': 'pack',
     vial: 'vial', bag: 'bag', patch: 'patch', puff: 'puff', '분무': 'puff', spray: 'puff',
     syrn: 'syringe', syringe: 'syringe', bottle: 'bottle', btl: 'bottle', ea: 'ea',
     fingerspoon: 'FTU', ftu: 'FTU', fingertip: 'FTU', 'finger tip': 'FTU', 'finger tip unit': 'FTU', 'fingertip unit': 'FTU',
-    syr: 'syringe', '나잘스프레이': 'puff', uk: 'UK', unk: 'UK', unknown: 'UK', dose: 'dose'
+    syr: 'syringe', '나잘스프레이': 'puff',
+    supp: 'supp', 'supp.': 'supp', suppository: 'supp', suppositories: 'supp', '좌약': 'supp', '좌제': 'supp', uk: 'UK', unk: 'UK', unknown: 'UK', '모름': 'UK', dose: 'dose'
   };
   var FREQ = {
     qd: 'QD', od: 'QD', '1': 'QD', daily: 'QD', bid: 'BID', tid: 'TID', qid: 'QID', prn: 'PRN',
@@ -75,12 +83,12 @@
     eye: 'OPHTHALMIC', 'eye drop': 'OPHTHALMIC', ophthalmic: 'OPHTHALMIC', opthalmic: 'OPHTHALMIC', oph: 'OPHTHALMIC',
     ou: 'OPHTHALMIC', od: 'OPHTHALMIC', os: 'OPHTHALMIC', '점안': 'OPHTHALMIC',
     topical: 'TOPICAL', derma: 'TOPICAL', dermal: 'TOPICAL', epidermal: 'TOPICAL', cutaneous: 'TOPICAL', skin: 'TOPICAL',
-    ext: 'TOPICAL', '외용': 'TOPICAL', '국소': 'TOPICAL', '피부에 도포': 'TOPICAL',
+    ext: 'TOPICAL', '외용': 'TOPICAL', '국소': 'TOPICAL', '피부에 도포': 'TOPICAL', '피부': 'TOPICAL',
     td: 'TRANSDERMAL', transdermal: 'TRANSDERMAL', '피부 부착': 'TRANSDERMAL', '피부부착': 'TRANSDERMAL',
     nasal: 'NASAL', '코세척': 'NASAL', 'intra-articular': 'INTRA-ARTICULAR', ia: 'INTRA-ARTICULAR', '관절강내': 'INTRA-ARTICULAR',
-    vaginal: 'VAGINAL', pv: 'VAGINAL', sublingual: 'SUBLINGUAL', sl: 'SUBLINGUAL', '설하': 'SUBLINGUAL',
+    vaginal: 'VAGINAL', pv: 'VAGINAL', '질내': 'VAGINAL', '질': 'VAGINAL', sublingual: 'SUBLINGUAL', sl: 'SUBLINGUAL', '설하': 'SUBLINGUAL',
     gargle: 'GARGLE', '가글': 'GARGLE', '구강': 'GARGLE', ivt: 'INTRAVITREAL', ear: 'OTIC', otic: 'OTIC',
-    '방광내주입': 'INTRAVESICAL', intravesical: 'INTRAVESICAL', rectal: 'RECTAL', pr: 'RECTAL'
+    '방광내주입': 'INTRAVESICAL', intravesical: 'INTRAVESICAL', rectal: 'RECTAL', pr: 'RECTAL', anus: 'RECTAL', '항문': 'RECTAL', '직장': 'RECTAL'
   };
   function stripOther(s) { var m = /^other\((.*)\)$/i.exec(s); return (m ? m[1] : s).trim(); }
   function normUnit(v) { if (isBlank(v)) return null; var s = stripOther(String(v).trim()); return UNIT[s.toLowerCase()] || s.toLowerCase(); }
@@ -93,25 +101,40 @@
   function normRoute(v) { if (isBlank(v)) return null; var s = stripOther(String(v).trim()); return ROUTE[s.toLowerCase()] || s.toUpperCase(); }
   function normName(v) { return isBlank(v) ? null : String(v).replace(/\s+/g, '').toUpperCase(); }
 
-  // 용량: "20", "200IU", "20 mg" → 숫자 (+단위가 비었으면 붙어 있던 단위 사용)
+  // 용량: CMDOSE에는 숫자만 (11-23 지후 결정). 허용: 1, 12, 0.5, 12.5 / 오류: .5, 5., 0,5, 1,000, 05, 20mg
+  var DOSE_RE = /^-?(0|[1-9][0-9]*)(\.[0-9]+)?$/;
   function parseDose(v, unit) {
     if (isBlank(v)) return { dose: null, unit: unit };
-    var s = String(v).trim().replace(/,/g, '');
-    var m = /^([0-9]*\.?[0-9]+)\s*([A-Za-zμµ㎎㎍]*)$/.exec(s);
-    if (!m) return { dose: null, unit: unit };
-    return { dose: parseFloat(m[1]), unit: unit || (m[2] ? normUnit(m[2]) : null) };
+    if (typeof v === 'number') return { dose: isFinite(v) ? v : null, unit: unit };
+    var s = String(v).trim();
+    return { dose: DOSE_RE.test(s) ? parseFloat(s) : null, unit: unit };
+  }
+  // 용량이 숫자 형식이 아닐 때 이유와 안내
+  function doseProblem(raw) {
+    var s = String(raw).trim();
+    if (/월|일|\d{4}-\d{2}/.test(s)) return ['날짜 형식', '엑셀이 분수(예: 1/2)를 날짜로 바꾼 것으로 보여요. 0.5처럼 소수로 입력'];
+    if (/^[0-9.,\s]*[0-9][0-9.,\s]*[^0-9.,\s\/~\-].*$/.test(s)) return ['용량 칸에 단위·글자가 같이 있어요', 'CMDOSE에는 숫자만, 단위는 CMDOSU에 입력'];
+    if (/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) return ['천 단위 쉼표가 있어요', '쉼표 없이 입력 (예: 1000)'];
+    if (/,/.test(s)) return ['소수점 자리에 쉼표가 있어요', '소수점은 점(.)으로 입력 (예: 0.5)'];
+    if (/\..*\./.test(s)) return ['소수점이 두 개 이상이에요', '숫자를 다시 확인 (예: 1.5)'];
+    if (/^\.\d/.test(s)) return ['소수점 앞에 숫자가 없어요', '0.5처럼 0을 붙여 입력'];
+    if (/^\d+\.$/.test(s)) return ['소수점 뒤에 숫자가 없어요', '5 또는 5.0처럼 입력'];
+    if (/^0\d/.test(s)) return ['0으로 시작하는 숫자예요', '0.5를 잘못 쓴 건지 확인 (예: 05 → 0.5 또는 5)'];
+    return ['숫자가 아니에요', '숫자만 입력 (예: 0.5)'];
   }
 
   // ---------- 3. 함량 추출과 mg 환산 ----------
+  // 제품명의 한글 함량 단위 → 영문 (11-23 지후 결정)
+  var KOR_STR = { '밀리그램': 'mg', '마이크로그램': 'mcg', '그램': 'g', '국제단위': 'iu' };
   var MASS = { mg: 1, mcg: 0.001, g: 1000 };
   // 제품명에서 함량 하나만 있을 때 반환. "아모잘탄 5/50mg"처럼 복합제면 null
   function strengthFromName(name) {
     if (!name) return null;
     var s = String(name);
     if (/\d\s*\/\s*\d/.test(s)) return null;
-    var re = /(\d+(?:\.\d+)?)\s*(mg|mcg|μg|µg|㎍|㎎|ug|g|iu|IU|밀리그램)(?![a-z])(?!\s*\/)/gi, m, found = [];
+    var re = /(\d+(?:\.\d+)?)\s*(mg|mcg|μg|µg|㎍|㎎|ug|g|iu|IU|밀리그램|마이크로그램|그램|국제단위)(?![a-z])(?!\s*\/)/gi, m, found = [];
     while ((m = re.exec(s)) !== null) {
-      var u = m[2].toLowerCase(); u = u === '밀리그램' ? 'mg' : (UNIT[u] || u);
+      var u = m[2].toLowerCase(); u = KOR_STR[u] || UNIT[u] || u;
       found.push({ v: parseFloat(m[1]), u: u === 'iu' ? 'IU' : u });
     }
     if (!found.length) return null;
@@ -137,7 +160,7 @@
     do {
       prev = s;
       s = s.replace(/\s*\([^()]*\)\s*$/, '')
-           .replace(/\s*[\d.,\/]+\s*(mg|mcg|μg|µg|㎍|㎎|g|ml|㎖|l|iu|units?|%|밀리그램|그램|밀리리터|mg\/ml|mg\/g)?\s*$/i, '')
+           .replace(/\s*[\d.,\/]+\s*(mg|mcg|μg|µg|㎍|㎎|g|ml|㎖|l|iu|units?|%|밀리그램|마이크로그램|그램|국제단위|밀리리터|mg\/ml|mg\/g)?\s*$/i, '')
            .replace(/[\s.\-_,]+$/, '');
     } while (s !== prev && s.length);
     var m;
@@ -159,14 +182,20 @@
     if (miss.length) return { label: label, ok: false, reason: '필수 컬럼 없음: ' + miss.map(function (k) { return LABEL[k]; }).join(', '), rows: [], table: t };
     function get(r, k) { return t.map[k] ? r[t.map[k].idx] : null; }
     var data = [];
-    t.rows.forEach(function (r, i) { if (r && !isBlank(get(r, 'trt'))) { r.__row = t.headerRow + 1 + i; data.push(r); } });
+    t.rows.forEach(function (r, i) { if (r && !isBlank(get(r, 'trt'))) { r.__row = t.headerRow + 1 + i; r.__raw = t.rawRows ? t.rawRows[i] : null; data.push(r); } });
+    // 용량: 엑셀 숫자 칸은 실제 값을 씀 (서식 때문에 "1,000"으로 보여도 값이 1000이면 정상). 날짜로 바뀐 칸은 글자 그대로 둬서 오류로 잡음
+    function getDose(r) {
+      var txt = get(r, 'dose'), rv = (r.__raw && t.map.dose) ? r.__raw[t.map.dose.idx] : null;
+      if (typeof rv === 'number' && txt != null && /^-?[0-9,]*\.?[0-9]+$/.test(String(txt).trim())) return rv;
+      return txt;
+    }
     // 숫자 코드 단위 감지 (예: 1, 4, 10) → 코드표 없이는 학습 불가
     var units = data.map(function (r) { return get(r, 'unit'); }).filter(function (v) { return !isBlank(v); });
     var numeric = units.filter(function (v) { return /^\d+$/.test(String(v).trim()); }).length;
     if (units.length && numeric / units.length > 0.8)
       return { label: label, ok: false, reason: '단위·빈도·경로가 숫자 코드로 되어 있어요 (코드표 필요)', rows: [], table: t };
     var rows = data.map(function (r) {
-      var unit = normUnit(get(r, 'unit')), pd = parseDose(get(r, 'dose'), unit), code = get(r, 'code');
+      var unit = normUnit(get(r, 'unit')), pd = parseDose(getDose(r), unit), code = get(r, 'code');
       code = (!isBlank(code) && /^\d+$/.test(String(code).trim())) ? String(code).trim() : null;
       return {
         subj: label + '|' + String(get(r, 'subj')), raw: String(get(r, 'trt')).trim(), name: normName(get(r, 'trt')),
@@ -241,7 +270,7 @@
   }
 
   // ---------- 6. 검증 ----------
-  var UNIT_OK = ['mg', 'mcg', 'g', 'ml', 'IU', 'tab', 'cap', 'amp', 'vial', 'drop', 'pack', 'puff', 'patch', 'bag', 'syringe', 'bottle', 'FTU', 'ea', 'kit', 'l', 'meq', 'mmol', 'dose', 'UK', 'box', 'apply', '회'];
+  var UNIT_OK = ['mg', 'mcg', 'g', 'ml', 'IU', 'tab', 'cap', 'amp', 'vial', 'drop', 'pack', 'puff', 'patch', 'bag', 'syringe', 'bottle', 'FTU', 'ea', 'kit', 'l', 'meq', 'mmol', 'dose', 'UK', 'box', 'apply', '회', 'supp'];
   var FREQ_OK = ['QD', 'BID', 'TID', 'QID', 'PRN', 'ONCE', 'QW', 'QM', 'Q2M', 'Q3M', 'Q6M', 'Q2W', 'Q3W', 'Q3D', 'Q48H', 'QOD', 'Q4H', 'Q6H', 'Q8H', 'Q12H'];
   var ROUTE_OK = ['PO', 'IV', 'IM', 'SC', 'INHALATION', 'OPHTHALMIC', 'TOPICAL', 'TRANSDERMAL', 'NASAL', 'INTRA-ARTICULAR', 'VAGINAL', 'SUBLINGUAL', 'GARGLE', 'INTRAVITREAL', 'OTIC', 'RECTAL', 'INTRADERMAL', 'INTRAVESICAL'];
   var LEVEL = { '오류': 3, '확인 필요': 2, '판정 불가': 1, '정상': 0 };
@@ -270,7 +299,7 @@
       case 'FORM-01': case 'FORM-02': return ['trt', 'unit'];
       case 'FORM-03': return ['trt', 'route'];
       case 'FORM-04': return ['trt', 'unit'];
-      case 'UNIT-01': case 'UNIT-02': case 'UNIT-03': case 'UNIT-04': return ['unit', 'route'];
+      case 'UNIT-01': case 'UNIT-02': case 'UNIT-03': case 'UNIT-04': case 'UNIT-05': return ['unit', 'route'];
       case 'DOSE-01': case 'DICT-DOSE': case 'DICT-UNIT': return ['dose', 'unit'];
       case 'DICT-FREQ': return ['freq'];
       case 'DICT-ROUTE': return ['route'];
@@ -281,11 +310,11 @@
   function checkRow(r, dic) {
     var issues = [], P = dic.products, minSubj = dic.meta.params.minSubj, cut = dic.meta.params.rareCut;
     function add(level, rule, msg, ref) { issues.push({ level: level, rule: rule, msg: msg, ref: ref || '', fields: fieldsFor(rule, msg) }); }
-    var raw = String(r.rawDose == null ? '' : r.rawDose).trim(), doseUK = /^(UK|UNK|UNKNOWN)$/i.test(raw);
+    var raw = String(r.rawDose == null ? '' : r.rawDose).trim(), doseUK = /^(UK|UNK|UNKNOWN|모름)$/i.test(raw);
     var doseBad = false;
 
     // 1단계: 형식 검사
-    if (!isBlank(r.rawDose) && !doseUK && r.dose == null) { add('오류', 'STRUCT-01', '용량이 숫자가 아니에요: "' + raw + '"', /월|일|\d{4}-\d{2}/.test(raw) ? '엑셀이 분수(예: 1/2)를 날짜로 바꾼 것으로 보여요. 0.5처럼 소수로 입력' : '숫자만 입력 (예: 0.5)'); doseBad = true; }
+    if (!isBlank(r.rawDose) && !doseUK && r.dose == null) { var dp = doseProblem(raw); add('오류', 'STRUCT-01', '용량 형식 오류(' + dp[0] + '): "' + raw + '"', dp[1]); doseBad = true; }
     else if (r.dose != null && r.dose <= 0) { add('오류', 'STRUCT-01', '용량이 0 이하예요: ' + raw); doseBad = true; }
     var miss = [];
     if (isBlank(r.rawDose)) miss.push('용량');
@@ -326,6 +355,8 @@
         routeErr('UNIT-03', '오류', '단위가 puff(흡입·분무)인데 경로가 ' + r.rawRoute + '이에요', 'puff는 INHALATION, NASAL, SUBLINGUAL(설하 스프레이)만 가능');
       else if (r.unit === 'drop' && ['IV', 'IM', 'SC'].indexOf(rt) >= 0)
         routeErr('UNIT-04', '오류', '단위가 drop인데 경로가 ' + r.rawRoute + '이에요', 'drop은 OPHTHALMIC, OTIC, NASAL, PO(경구 드롭) 등으로 입력');
+      else if (r.unit === 'supp' && ['RECTAL', 'VAGINAL'].indexOf(rt) < 0)
+        routeErr('UNIT-05', '오류', '단위가 좌약(supp)인데 경로가 ' + r.rawRoute + '이에요', '좌약은 RECTAL(항문·직장) 또는 VAGINAL(질)로 입력');
     }
     if (rt && r.raw) {
       var nm = String(r.raw);

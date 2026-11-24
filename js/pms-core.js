@@ -937,7 +937,7 @@
   }
 
   // ------------------------------------------------------------------ 용어 매핑표
-  /* termMap: {허가사항 용어: [[PT 영문명, '확정'|'제안'], ...]} */
+  /* termMap: {허가사항 용어: [[PT 영문명, '확정'|'제안'|'제외'], ...]}  '제외' = 근거로 쓰지 않음 */
   function parseTermMapCsv(text) {
     const map = {};
     const rows = text.replace(/^﻿/, '').split(/\r?\n/).filter((l) => l.trim());
@@ -965,8 +965,9 @@
     return '﻿' + lines.join('\r\n') + '\r\n';
   }
 
-  function labelTerms(label, md, termMap, scope) {
-    termMap = termMap || {};
+  /* excluded: 모든 약에 공통으로 제외할 용어 {norm(용어): …} (쿼랑이 화면의 '제외', 11-20) */
+  function labelTerms(label, md, termMap, scope, excluded) {
+    termMap = termMap || {}; excluded = excluded || {};
     const confirmed = {};
     for (const [t, rows] of Object.entries(termMap)) if (rows[0] && rows[0][1] === '확정') confirmed[t] = rows[0][0];
     const { out, unmapped } = extract(label, md, confirmed, scope);
@@ -982,6 +983,8 @@
       const pool = variantHits(md, u.term).concat(part, sims);
       const c = pool.filter((x, i) => pool.findIndex((y) => y.pt === x.pt) === i).slice(0, Math.max(3, part.length));
       u.candidates = c.map((x) => ({ ...x, ptKr: x.ptKr || md.ptKr.get(x.pt) || '' }));
+      // 사용자가 '제외'한 용어는 근거로 쓰지 않음 (다음에도 다시 묻지 않음)
+      if (excluded[norm(u.term)] || (termMap[u.term] && termMap[u.term][0] && termMap[u.term][0][1] === '제외')) { u.excluded = true; continue; }
       let code, st;
       if (termMap[u.term]) { [code, st] = [md.ptCode(termMap[u.term][0][0]), termMap[u.term][0][1]]; }
       else {
