@@ -58,6 +58,8 @@
   .note{background:#fffbea;border:1px solid #f0e2a8;border-radius:10px;padding:12px 16px;font-size:14px;color:#6b5a12;margin-top:18px}
   details{margin-top:14px} summary{cursor:pointer;color:var(--sub);font-size:14px}
   .rules td{font-size:13.5px}
+  .rules td .eg{display:block;margin-top:3px;color:var(--sub);font-size:13px}
+  .rules td .lv{display:block;margin-top:2px;font-size:12px;font-weight:600;color:var(--amber)}
   .hidden{display:none}
 </style>
 </head>
@@ -196,30 +198,32 @@
         <summary>룰 설명 보기</summary>
         <p class="muted" style="margin:8px 0 0">단위와 경로는 먼저 표준 단위·표준 경로로 바꾼 뒤 점검해요. 예: ampule → amp, 좌제 → supp, 항문 → RECTAL, 피부 → TOPICAL</p>
         <table class="rules" style="margin-top:8px"><tbody>
-          <tr><td style="width:14%"><b>STRUCT-01</b></td><td>용량(CMDOSE)은 0.5, 12처럼 숫자만 입력해야 해요. 숫자 형식이 아니거나 0 이하면 오류예요. 예: "1/2", "1~2", ".5", "5.", "0,5", "1,000", "05", "20mg", 엑셀이 날짜로 바꾼 "01월 02일". UK·unk·unknown·모름은 허용해요.</td></tr>
-          <tr><td><b>STRUCT-02</b></td><td>필수값(용량·단위·빈도·경로)이 비어 있어요. 빈도 컬럼이 없는 파일은 빈도를 검사하지 않아요.</td></tr>
-          <tr><td><b>STRUCT-03</b></td><td>입력한 단위를 표준 단위로 바꾼 뒤, 허용 단위 목록에 없으면 오류예요. 예: 알, 스푼. box·apply·회·좌약(supp)은 허용해요. milligram·밀리그램·microgram·밀리리터처럼 풀어 쓴 단위와 "모름"(UK로 봄)도 인정해요.</td></tr>
-          <tr><td><b>STRUCT-04</b></td><td>빈도·경로가 표준 표기가 아니에요. 예: "5~6회", "하루한번"</td></tr>
-          <tr><td><b>FORM-01</b></td><td>제품명이 "정" 또는 영문 tab으로 끝나는데 단위가 캡슐(cap)이에요. 예: 레토프라 정 10mg 1 cap, Pletaal tab. 100mg 1 cap</td></tr>
-          <tr><td><b>FORM-02</b></td><td>제품명이 "캡슐"·"캡" 또는 영문 cap으로 끝나는데 단위가 정(tab)이에요. 예: 엘도스 캡슐 2 tab, CELEBREX CAP 100mg 2 tab</td></tr>
-          <tr><td><b>FORM-03</b></td><td>제품명이 "주"·"주사" 또는 영문 inj로 끝나는데 경로가 IV·IM·SC가 아니에요. 예: 타조락탐 주 4.5g 경로 PO, 페니라민 주사 경로 PO</td></tr>
-          <tr><td><b>FORM-04</b></td><td>제품명이 정·캡슐로 끝나는 고형제인데 단위가 ml·drop·puff예요. 예: 레토프라 정 10mg 5 ml</td></tr>
-          <tr><td><b>UNIT-01</b></td><td>단위가 tab인데 경로가 PO·SUBLINGUAL·VAGINAL이 아니거나, cap인데 PO·VAGINAL·INHALATION이 아니에요. 예: 1 tab SC</td></tr>
-          <tr><td><b>UNIT-02</b></td><td>입력한 단위를 표준 단위로 바꾼 뒤, 주사 단위(amp·vial·syringe·bag)인데 경로가 PO·TOPICAL이면 오류예요. ampule·ample·앰플은 amp로, syr·syrn은 syringe로 봐요. 흡입·코세척 앰플은 허용해요.</td></tr>
-          <tr><td><b>UNIT-03</b></td><td>단위가 puff인데 경로가 INHALATION·NASAL·SUBLINGUAL이 아니에요. 예: 2 puff PO</td></tr>
-          <tr><td><b>UNIT-04</b></td><td>단위가 drop인데 경로가 IV·IM·SC예요.</td></tr>
-          <tr><td><b>UNIT-05</b></td><td>단위가 좌약(supp·suppository·좌약·좌제)인데 경로가 RECTAL·VAGINAL이 아니에요. 항문·직장은 RECTAL로, 질·질내는 VAGINAL로 봐요. 예: 1 suppository PO</td></tr>
-          <tr><td><b>NAME-01</b></td><td>점안제(점안·안약·eye drop·opht)인데 경로가 OPHTHALMIC이 아니에요. 예: Hyabak eye drop Topical</td></tr>
-          <tr><td><b>NAME-02</b></td><td>비강 제품(나잘·nasal·비강)인데 경로가 NASAL이 아니에요. 확인 필요로 표시해요. 예: 나조넥스 나잘스프레이 Inhalation</td></tr>
-          <tr><td><b>NAME-03</b></td><td>흡입제(흡입·~할러·엘립타·네뷸 등)인데 경로가 INHALATION이 아니에요.</td></tr>
-          <tr><td><b>NAME-04</b></td><td>패취제(패취·패치·플라스타)인데 경로가 TRANSDERMAL·TOPICAL이 아니에요. skin·피부는 TOPICAL로 봐요.</td></tr>
-          <tr><td><b>NAME-05</b></td><td>시럽·현탁액·내복액(경구 액제)인데 경로가 PO가 아니에요. 점안·비강·주사 현탁액은 제외해요.</td></tr>
-          <tr><td><b>NAME-06</b></td><td>연고·크림·로션(외용제)인데 경로가 PO예요. 먹는 겔(알마겔 등) 때문에 "겔"은 보지 않아요.</td></tr>
-          <tr><td><b>NAME-07</b></td><td>좌제·좌약인데 경로가 RECTAL·VAGINAL이 아니에요.</td></tr>
-          <tr><td><b>NAME-08</b></td><td>질정·질캡슐·질좌제인데 경로가 VAGINAL이 아니에요. 일반 "연질캡슐"은 해당 없어요.</td></tr>
-          <tr><td><b>DOSE-01</b></td><td>제품명의 함량과 1회 용량이 10배 이상 차이 나요. 예: 타이레놀정500mg인데 5000 mg, 75μg 정인데 30 tab</td></tr>
-          <tr><td><b>DICT-DOSE · FREQ · ROUTE</b></td><td>학습한 과제에서 이 제품에 거의 쓰이지 않은 용량·빈도·경로예요. tab·cap은 함량을 곱해 mg로 바꿔 비교해요.</td></tr>
-          <tr><td><b>DICT-UNIT</b></td><td>제품명에 함량이 없어서 mg로 바꿀 수 없는 제품인데, 학습한 과제에서 주로 쓰인 단위와 다른 단위로 입력했어요. 예: 주로 mg로 입력된 엘도스 캡슐을 2 cap으로 입력</td></tr>
+          <tr><td style="width:14%"><b>STRUCT-01</b></td><td>용량(CMDOSE)은 0.5, 12처럼 숫자만 입력해야 해요. 숫자 형식이 아니거나 0 이하면 오류예요. UK·unk·unknown·모름은 허용해요.<span class="eg">예: &quot;1/2&quot;, &quot;1~2&quot;, &quot;.5&quot;, &quot;5.&quot;, &quot;0,5&quot;, &quot;1,000&quot;, &quot;05&quot;, &quot;20mg&quot;, 엑셀이 날짜로 바꾼 &quot;01월 02일&quot;</span></td></tr>
+          <tr><td><b>STRUCT-02</b></td><td>필수값(용량·단위·빈도·경로)이 비어 있어요. 빈도 컬럼이 없는 파일은 빈도를 검사하지 않아요.<span class="eg">예: 용량 2, 단위 빈칸</span></td></tr>
+          <tr><td><b>STRUCT-03</b></td><td>입력한 단위를 표준 단위로 바꾼 뒤, 허용 단위 목록에 없으면 오류예요. milligram·밀리그램처럼 풀어 쓴 단위와 "모름"(UK로 봄)도 인정해요.<span class="eg">예: 알, 스푼</span></td></tr>
+          <tr><td><b>STRUCT-04</b></td><td>빈도·경로가 표준 표기가 아니에요. 경로는 표준 경로로 바꾼 뒤 점검해요.<span class="eg">예: 빈도 &quot;5~6회&quot;, &quot;하루한번&quot;, 경로 &quot;주사&quot;</span></td></tr>
+          <tr><td><b>FORM-01</b></td><td>제품명이 "정" 또는 영문 tab으로 끝나는데 단위가 캡슐(cap)이에요.<span class="eg">예: 레토프라 정 10mg 1 cap, Pletaal tab. 100mg 1 cap</span></td></tr>
+          <tr><td><b>FORM-02</b></td><td>제품명이 "캡슐"·"캡" 또는 영문 cap으로 끝나는데 단위가 정(tab)이에요.<span class="eg">예: 엘도스 캡슐 2 tab, CELEBREX CAP 100mg 2 tab</span></td></tr>
+          <tr><td><b>FORM-03</b></td><td>제품명이 "주"·"주사" 또는 영문 inj로 끝나는데 경로가 IV·IM·SC가 아니에요.<span class="eg">예: 페니라민 주사 경로 PO, 타조락탐 주 4.5g 경로 PO</span></td></tr>
+          <tr><td><b>FORM-04</b></td><td>제품명이 정·캡슐로 끝나는 고형제인데 단위가 ml·drop·puff예요.<span class="eg">예: 레토프라 정 10mg 5 ml</span></td></tr>
+          <tr><td><b>UNIT-01</b></td><td>단위가 tab인데 경로가 PO·SUBLINGUAL·VAGINAL이 아니거나, cap인데 PO·VAGINAL·INHALATION이 아니에요.<span class="eg">예: 1 tab SC</span></td></tr>
+          <tr><td><b>UNIT-02</b></td><td>입력한 단위를 표준 단위로 바꾼 뒤, 주사 단위(amp·vial·syringe·bag)인데 경로가 PO·TOPICAL이면 오류예요. ampule·ample·앰플은 amp로, syr·syrn은 syringe로 봐요. 흡입·코세척 앰플은 허용해요.<span class="eg">예: 1 ampule PO, 1 vial TOPICAL</span></td></tr>
+          <tr><td><b>UNIT-03</b></td><td>단위가 puff인데 경로가 INHALATION·NASAL·SUBLINGUAL이 아니에요.<span class="eg">예: 2 puff PO</span></td></tr>
+          <tr><td><b>UNIT-04</b></td><td>단위가 drop인데 경로가 IV·IM·SC예요.<span class="eg">예: 2 drop IV</span></td></tr>
+          <tr><td><b>UNIT-05</b></td><td>단위가 좌약(supp·suppository·좌약·좌제)인데 경로가 RECTAL·VAGINAL이 아니에요. 항문·직장은 RECTAL로, 질·질내는 VAGINAL로 봐요.<span class="eg">예: 1 suppository PO</span></td></tr>
+          <tr><td><b>NAME-01</b></td><td>점안제(점안·안약·eye drop·opht)인데 경로가 OPHTHALMIC이 아니에요.<span class="eg">예: Hyabak eye drop 경로 TOPICAL</span></td></tr>
+          <tr><td><b>NAME-02</b><span class="lv">확인 필요</span></td><td>비강 제품(나잘·nasal·비강)인데 경로가 NASAL이 아니에요.<span class="eg">예: 나조넥스 나잘스프레이 경로 INHALATION</span></td></tr>
+          <tr><td><b>NAME-03</b></td><td>흡입제(흡입·~할러·엘립타·네뷸 등)인데 경로가 INHALATION이 아니에요.<span class="eg">예: 세레타이드 디스커스 1 dose 경로 PO</span></td></tr>
+          <tr><td><b>NAME-04</b></td><td>패취제(패취·패치·플라스타)인데 경로가 TRANSDERMAL·TOPICAL이 아니에요. skin·피부는 TOPICAL로 봐요.<span class="eg">예: 듀로제식 패취 경로 PO</span></td></tr>
+          <tr><td><b>NAME-05</b></td><td>시럽·현탁액·내복액(경구 액제)인데 경로가 PO가 아니에요. 점안·비강·주사 현탁액은 제외해요.<span class="eg">예: 코대원포르테시럽 경로 TOPICAL</span></td></tr>
+          <tr><td><b>NAME-06</b></td><td>연고·크림·로션(외용제)인데 경로가 PO예요. 먹는 겔(알마겔 등) 때문에 "겔"은 보지 않아요.<span class="eg">예: 더모베이트 크림 경로 PO</span></td></tr>
+          <tr><td><b>NAME-07</b></td><td>좌제·좌약인데 경로가 RECTAL·VAGINAL이 아니에요.<span class="eg">예: 둘코락스 좌약 경로 PO</span></td></tr>
+          <tr><td><b>NAME-08</b></td><td>질정·질캡슐·질좌제인데 경로가 VAGINAL이 아니에요. 일반 "연질캡슐"은 해당 없어요.<span class="eg">예: 카네스텐 질정 경로 PO</span></td></tr>
+          <tr><td><b>DOSE-01</b></td><td>제품명의 함량과 1회 용량이 10배 이상 차이 나거나, 정·캡슐을 한 번에 10개 이상 입력했어요. mg·mcg·g는 mg로 바꿔 비교해요.<span class="eg">예: 타이레놀정500mg인데 5000 mg, 씬지록신 75μg 정인데 30 tab</span></td></tr>
+          <tr><td><b>DICT-DOSE</b><span class="lv">확인 필요</span></td><td>이 제품을 쓴 피험자의 5% 미만만 쓴 1회 용량이에요. tab·cap·puff는 함량을 곱해 mg로 바꿔 비교해요.<span class="eg">예: 98%가 10 mg인 제품에 2 tab(20 mg)</span></td></tr>
+          <tr><td><b>DICT-FREQ</b><span class="lv">확인 필요</span></td><td>이 제품을 쓴 피험자의 5% 미만만 쓴 빈도예요.<span class="eg">예: 모두 QD로 쓴 제품에 TID</span></td></tr>
+          <tr><td><b>DICT-ROUTE</b><span class="lv">확인 필요</span></td><td>이 제품을 쓴 피험자의 5% 미만만 쓴 경로예요.<span class="eg">예: 모두 PO로 쓴 제품에 SUBLINGUAL</span></td></tr>
+          <tr><td><b>DICT-UNIT</b><span class="lv">확인 필요</span></td><td>제품명에 함량이 없어 mg로 바꿀 수 없는 제품인데, 주로 쓰인 단위와 다른 단위로 입력했어요.<span class="eg">예: 주로 mg로 입력된 제품을 2 cap으로 입력</span></td></tr>
         </tbody></table>
       </details>
     </div>

@@ -150,6 +150,20 @@
   details.allrules td{padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
   details.allrules td:first-child{white-space:nowrap;font-weight:700}
   details.allrules tr.grp td{background:var(--gray-soft);font-weight:700;color:var(--sub);font-size:12.5px;padding:5px 10px}
+  details.allrules td .eg{display:block;margin-top:4px;color:var(--sub);font-size:13px}
+  details.allrules td a{color:var(--brand);font-weight:600}
+  .rnote{margin:0 0 12px;color:var(--sub);font-size:13px}
+  .rtabs{display:flex;gap:4px;border-bottom:1px solid var(--field);margin-bottom:4px}
+  .rtabs button{font:inherit;font-size:14px;font-weight:600;color:var(--sub);background:none;border:0;border-bottom:3px solid transparent;padding:8px 14px 9px;margin-bottom:-1px;cursor:pointer;border-radius:6px 6px 0 0}
+  .rtabs button b{font-weight:700;margin-left:4px;font-size:12.5px;color:inherit;opacity:.75}
+  .rtabs button:hover{color:var(--ink);background:var(--gray-soft)}
+  .rtabs button[aria-selected="true"]{color:var(--brand);border-bottom-color:var(--brand)}
+  .rtabs button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+  .pnote{margin:12px 0 4px;color:var(--sub);font-size:13px}
+  .syntab td:first-child small{display:block;font-weight:500;color:var(--sub);font-size:12px;margin-top:1px}
+  .syntab td{padding-top:9px;padding-bottom:9px}
+  .syn{display:inline-block;font-size:13px;border:1px solid var(--field);background:#fff;border-radius:5px;padding:0 7px;margin:2px 4px 2px 0;white-space:nowrap}
+  .syntab .none{color:var(--sub)}
 
   @media (max-width:900px){
     .ways{grid-template-columns:1fr}
@@ -386,46 +400,115 @@
       <p>규칙은 확실하지만 "이 약을 하루 몇 번 먹는지"처럼 약마다 다른 건 알 수 없어요. 과제 데이터 비교는 약마다 다른 관행을 알지만, 처음 나온 제품은 비교할 수 없고 완료 과제에 같은 실수가 많으면 정상으로 배워요. 그래서 서로 빈 곳을 채우도록 함께 써요.</p>
     </div>
 
-    <details class="allrules">
-      <summary>룰 전체 보기 (26개)</summary>
+    <details class="allrules" id="allrules">
+      <summary>룰 전체 보기</summary>
+      <p class="rnote">단위와 경로는 먼저 표준 단위·표준 경로로 바꾼 뒤 점검해요. 예: ampule → amp, 좌제 → supp, 항문 → RECTAL, 피부 → TOPICAL</p>
+      <div class="rtabs" role="tablist" aria-label="룰 전체 보기">
+        <button type="button" role="tab" id="tab-rules" aria-controls="pane-rules" aria-selected="true">룰 <b>26</b></button>
+        <button type="button" role="tab" id="tab-units" aria-controls="pane-units" aria-selected="false" tabindex="-1">허용 단위 <b>28</b></button>
+        <button type="button" role="tab" id="tab-routes" aria-controls="pane-routes" aria-selected="false" tabindex="-1">표준 경로 <b>18</b></button>
+      </div>
+      <div class="rpane" role="tabpanel" id="pane-rules" aria-labelledby="tab-rules">
       <table>
-        <caption style="caption-side:top;text-align:left;color:var(--sub);font-size:13px;padding:0 0 10px">단위와 경로는 먼저 표준 단위·표준 경로로 바꾼 뒤 점검해요. 예: ampule → amp, 좌제 → supp, 항문 → RECTAL, 피부 → TOPICAL</caption>
-        <thead><tr><th style="width:20%">룰</th><th>내용</th><th style="width:12%">판정</th></tr></thead>
+        <thead><tr><th style="width:18%">룰</th><th>내용</th><th style="width:12%">판정</th></tr></thead>
         <tbody>
           <tr class="grp"><td colspan="3">1단계 · 형식</td></tr>
-          <tr><td>STRUCT-01</td><td>용량(CMDOSE)은 0.5, 12처럼 숫자만 입력해야 해요. 숫자 형식이 아니거나 0 이하면 오류예요. 예: "1/2", "1~2", ".5", "5.", "0,5", "1,000", "05", "20mg", 엑셀이 날짜로 바꾼 "01월 02일". UK·unk·unknown·모름은 허용해요.</td><td>오류</td></tr>
-          <tr><td>STRUCT-02</td><td>필수값(용량·단위·빈도·경로)이 비어 있어요. 빈도 컬럼이 없는 파일은 빈도를 검사하지 않아요.</td><td>오류</td></tr>
-          <tr><td>STRUCT-03</td><td>입력한 단위를 표준 단위로 바꾼 뒤, 허용 단위 목록에 없으면 오류예요. 예: 알, 스푼. box·apply·회·좌약(supp)은 허용해요. milligram·밀리그램·microgram·밀리리터처럼 풀어 쓴 단위와 "모름"(UK로 봄)도 인정해요.</td><td>오류</td></tr>
-          <tr><td>STRUCT-04</td><td>빈도·경로가 표준 표기가 아니에요. 예: "5~6회", "하루한번", 경로 "주사"</td><td>오류</td></tr>
+          <tr><td>STRUCT-01</td><td>용량(CMDOSE)은 0.5, 12처럼 숫자만 입력해야 해요. 숫자 형식이 아니거나 0 이하면 오류예요. UK·unk·unknown·모름은 허용해요.<span class="eg">예: &quot;1/2&quot;, &quot;1~2&quot;, &quot;.5&quot;, &quot;5.&quot;, &quot;0,5&quot;, &quot;1,000&quot;, &quot;05&quot;, &quot;20mg&quot;, 엑셀이 날짜로 바꾼 &quot;01월 02일&quot;</span></td><td>오류</td></tr>
+          <tr><td>STRUCT-02</td><td>필수값(용량·단위·빈도·경로)이 비어 있어요. 빈도 컬럼이 없는 파일은 빈도를 검사하지 않아요.<span class="eg">예: 용량 2, 단위 빈칸</span></td><td>오류</td></tr>
+          <tr><td>STRUCT-03</td><td>입력한 단위를 표준 단위로 바꾼 뒤, <a href="#" data-goto="units">허용 단위 목록</a>에 없으면 오류예요. milligram·밀리그램처럼 풀어 쓴 단위와 "모름"(UK로 봄)도 인정해요.<span class="eg">예: 알, 스푼</span></td><td>오류</td></tr>
+          <tr><td>STRUCT-04</td><td>빈도·경로가 표준 표기가 아니에요. 경로는 <a href="#" data-goto="routes">표준 경로</a>로 바꾼 뒤 점검해요.<span class="eg">예: 빈도 &quot;5~6회&quot;, &quot;하루한번&quot;, 경로 &quot;주사&quot;</span></td><td>오류</td></tr>
           <tr class="grp"><td colspan="3">1단계 · 제형</td></tr>
-          <tr><td>FORM-01</td><td>제품명이 "정" 또는 영문 tab으로 끝나는데 단위가 캡슐(cap)이에요. 예: 레토프라 정 10mg 1 cap</td><td>오류</td></tr>
-          <tr><td>FORM-02</td><td>제품명이 "캡슐"·"캡" 또는 영문 cap으로 끝나는데 단위가 정(tab)이에요. 예: 엘도스 캡슐 2 tab</td><td>오류</td></tr>
-          <tr><td>FORM-03</td><td>제품명이 "주"·"주사" 또는 영문 inj로 끝나는데 경로가 IV·IM·SC가 아니에요. 예: 페니라민 주사 경로 PO</td><td>오류</td></tr>
-          <tr><td>FORM-04</td><td>제품명이 정·캡슐로 끝나는 고형제인데 단위가 ml·drop·puff예요. 예: 레토프라 정 10mg 5 ml</td><td>오류</td></tr>
+          <tr><td>FORM-01</td><td>제품명이 "정" 또는 영문 tab으로 끝나는데 단위가 캡슐(cap)이에요.<span class="eg">예: 레토프라 정 10mg 1 cap, Pletaal tab. 100mg 1 cap</span></td><td>오류</td></tr>
+          <tr><td>FORM-02</td><td>제품명이 "캡슐"·"캡" 또는 영문 cap으로 끝나는데 단위가 정(tab)이에요.<span class="eg">예: 엘도스 캡슐 2 tab, CELEBREX CAP 100mg 2 tab</span></td><td>오류</td></tr>
+          <tr><td>FORM-03</td><td>제품명이 "주"·"주사" 또는 영문 inj로 끝나는데 경로가 IV·IM·SC가 아니에요.<span class="eg">예: 페니라민 주사 경로 PO, 타조락탐 주 4.5g 경로 PO</span></td><td>오류</td></tr>
+          <tr><td>FORM-04</td><td>제품명이 정·캡슐로 끝나는 고형제인데 단위가 ml·drop·puff예요.<span class="eg">예: 레토프라 정 10mg 5 ml</span></td><td>오류</td></tr>
           <tr class="grp"><td colspan="3">1단계 · 단위와 경로</td></tr>
-          <tr><td>UNIT-01</td><td>단위가 tab인데 경로가 PO·SUBLINGUAL·VAGINAL이 아니거나, cap인데 PO·VAGINAL·INHALATION이 아니에요. 예: 1 tab SC</td><td>오류</td></tr>
-          <tr><td>UNIT-02</td><td>입력한 단위를 표준 단위로 바꾼 뒤, 주사 단위(amp·vial·syringe·bag)인데 경로가 PO·TOPICAL이면 오류예요. ampule·ample·앰플은 amp로, syr·syrn은 syringe로 봐요. 흡입·코세척 앰플은 허용해요.</td><td>오류</td></tr>
-          <tr><td>UNIT-03</td><td>단위가 puff인데 경로가 INHALATION·NASAL·SUBLINGUAL이 아니에요. 예: 2 puff PO</td><td>오류</td></tr>
-          <tr><td>UNIT-04</td><td>단위가 drop인데 경로가 IV·IM·SC예요.</td><td>오류</td></tr>
-          <tr><td>UNIT-05</td><td>단위가 좌약(supp·suppository·좌약·좌제)인데 경로가 RECTAL·VAGINAL이 아니에요. 항문·직장은 RECTAL로, 질·질내는 VAGINAL로 봐요. 예: 1 suppository PO</td><td>오류</td></tr>
+          <tr><td>UNIT-01</td><td>단위가 tab인데 경로가 PO·SUBLINGUAL·VAGINAL이 아니거나, cap인데 PO·VAGINAL·INHALATION이 아니에요.<span class="eg">예: 1 tab SC</span></td><td>오류</td></tr>
+          <tr><td>UNIT-02</td><td>입력한 단위를 <a href="#" data-goto="units">표준 단위</a>로 바꾼 뒤, 주사 단위(amp·vial·syringe·bag)인데 경로가 PO·TOPICAL이면 오류예요. ampule·ample·앰플은 amp로, syr·syrn은 syringe로 봐요. 흡입·코세척 앰플은 허용해요.<span class="eg">예: 1 ampule PO, 1 vial TOPICAL</span></td><td>오류</td></tr>
+          <tr><td>UNIT-03</td><td>단위가 puff인데 경로가 INHALATION·NASAL·SUBLINGUAL이 아니에요.<span class="eg">예: 2 puff PO</span></td><td>오류</td></tr>
+          <tr><td>UNIT-04</td><td>단위가 drop인데 경로가 IV·IM·SC예요.<span class="eg">예: 2 drop IV</span></td><td>오류</td></tr>
+          <tr><td>UNIT-05</td><td>단위가 좌약(supp·suppository·좌약·좌제)인데 경로가 RECTAL·VAGINAL이 아니에요. 항문·직장은 RECTAL로, 질·질내는 VAGINAL로 봐요.<span class="eg">예: 1 suppository PO</span></td><td>오류</td></tr>
           <tr class="grp"><td colspan="3">1단계 · 제품명과 경로</td></tr>
-          <tr><td>NAME-01</td><td>점안제(점안·안약·eye drop·opht)인데 경로가 OPHTHALMIC이 아니에요.</td><td>오류</td></tr>
-          <tr><td>NAME-02</td><td>비강 제품(나잘·nasal·비강)인데 경로가 NASAL이 아니에요. 예: 나잘스프레이 Inhalation</td><td>확인 필요</td></tr>
-          <tr><td>NAME-03</td><td>흡입제(흡입·~할러·엘립타·네뷸 등)인데 경로가 INHALATION이 아니에요.</td><td>오류</td></tr>
-          <tr><td>NAME-04</td><td>패취제(패취·패치·플라스타)인데 경로가 TRANSDERMAL·TOPICAL이 아니에요. skin·피부는 TOPICAL로 봐요.</td><td>오류</td></tr>
-          <tr><td>NAME-05</td><td>시럽·현탁액·내복액(경구 액제)인데 경로가 PO가 아니에요. 점안·비강·주사 현탁액은 제외해요.</td><td>오류</td></tr>
-          <tr><td>NAME-06</td><td>연고·크림·로션(외용제)인데 경로가 PO예요. 먹는 겔(알마겔 등) 때문에 "겔"은 보지 않아요.</td><td>오류</td></tr>
-          <tr><td>NAME-07</td><td>좌제·좌약인데 경로가 RECTAL·VAGINAL이 아니에요.</td><td>오류</td></tr>
-          <tr><td>NAME-08</td><td>질정·질캡슐·질좌제인데 경로가 VAGINAL이 아니에요. 일반 "연질캡슐"은 해당 없어요.</td><td>오류</td></tr>
+          <tr><td>NAME-01</td><td>점안제(점안·안약·eye drop·opht)인데 경로가 OPHTHALMIC이 아니에요.<span class="eg">예: Hyabak eye drop 경로 TOPICAL</span></td><td>오류</td></tr>
+          <tr><td>NAME-02</td><td>비강 제품(나잘·nasal·비강)인데 경로가 NASAL이 아니에요.<span class="eg">예: 나조넥스 나잘스프레이 경로 INHALATION</span></td><td>확인 필요</td></tr>
+          <tr><td>NAME-03</td><td>흡입제(흡입·~할러·엘립타·네뷸 등)인데 경로가 INHALATION이 아니에요.<span class="eg">예: 세레타이드 디스커스 1 dose 경로 PO</span></td><td>오류</td></tr>
+          <tr><td>NAME-04</td><td>패취제(패취·패치·플라스타)인데 경로가 TRANSDERMAL·TOPICAL이 아니에요. skin·피부는 TOPICAL로 봐요.<span class="eg">예: 듀로제식 패취 경로 PO</span></td><td>오류</td></tr>
+          <tr><td>NAME-05</td><td>시럽·현탁액·내복액(경구 액제)인데 경로가 PO가 아니에요. 점안·비강·주사 현탁액은 제외해요.<span class="eg">예: 코대원포르테시럽 경로 TOPICAL</span></td><td>오류</td></tr>
+          <tr><td>NAME-06</td><td>연고·크림·로션(외용제)인데 경로가 PO예요. 먹는 겔(알마겔 등) 때문에 "겔"은 보지 않아요.<span class="eg">예: 더모베이트 크림 경로 PO</span></td><td>오류</td></tr>
+          <tr><td>NAME-07</td><td>좌제·좌약인데 경로가 RECTAL·VAGINAL이 아니에요.<span class="eg">예: 둘코락스 좌약 경로 PO</span></td><td>오류</td></tr>
+          <tr><td>NAME-08</td><td>질정·질캡슐·질좌제인데 경로가 VAGINAL이 아니에요. 일반 "연질캡슐"은 해당 없어요.<span class="eg">예: 카네스텐 질정 경로 PO</span></td><td>오류</td></tr>
           <tr class="grp"><td colspan="3">2단계 · 함량</td></tr>
-          <tr><td>DOSE-01</td><td>제품명의 함량과 1회 용량이 10배 이상 차이 나거나, 정·캡슐을 한 번에 10개 이상 입력했어요. 예: 타이레놀정500mg인데 5000 mg</td><td>오류</td></tr>
+          <tr><td>DOSE-01</td><td>제품명의 함량과 1회 용량이 10배 이상 차이 나거나, 정·캡슐을 한 번에 10개 이상 입력했어요. mg·mcg·g는 mg로 바꿔 비교해요.<span class="eg">예: 타이레놀정500mg인데 5000 mg, 씬지록신 75μg 정인데 30 tab</span></td><td>오류</td></tr>
           <tr class="grp"><td colspan="3">3단계 · 과제 데이터 비교 (기준사전)</td></tr>
-          <tr><td>DICT-DOSE</td><td>이 제품을 쓴 피험자의 5% 미만만 쓴 1회 용량이에요. tab·cap·puff는 함량을 곱해 mg로 바꿔 비교해요.</td><td>확인 필요</td></tr>
-          <tr><td>DICT-FREQ</td><td>이 제품을 쓴 피험자의 5% 미만만 쓴 빈도예요.</td><td>확인 필요</td></tr>
-          <tr><td>DICT-ROUTE</td><td>이 제품을 쓴 피험자의 5% 미만만 쓴 경로예요.</td><td>확인 필요</td></tr>
-          <tr><td>DICT-UNIT</td><td>제품명에 함량이 없어 mg로 바꿀 수 없는 제품인데, 주로 쓰인 단위와 다른 단위로 입력했어요. 예: 주로 mg로 입력된 제품을 2 cap으로 입력</td><td>확인 필요</td></tr>
+          <tr><td>DICT-DOSE</td><td>이 제품을 쓴 피험자의 5% 미만만 쓴 1회 용량이에요. tab·cap·puff는 함량을 곱해 mg로 바꿔 비교해요.<span class="eg">예: 98%가 10 mg인 제품에 2 tab(20 mg)</span></td><td>확인 필요</td></tr>
+          <tr><td>DICT-FREQ</td><td>이 제품을 쓴 피험자의 5% 미만만 쓴 빈도예요.<span class="eg">예: 모두 QD로 쓴 제품에 TID</span></td><td>확인 필요</td></tr>
+          <tr><td>DICT-ROUTE</td><td>이 제품을 쓴 피험자의 5% 미만만 쓴 경로예요.<span class="eg">예: 모두 PO로 쓴 제품에 SUBLINGUAL</span></td><td>확인 필요</td></tr>
+          <tr><td>DICT-UNIT</td><td>제품명에 함량이 없어 mg로 바꿀 수 없는 제품인데, 주로 쓰인 단위와 다른 단위로 입력했어요.<span class="eg">예: 주로 mg로 입력된 제품을 2 cap으로 입력</span></td><td>확인 필요</td></tr>
         </tbody>
       </table>
+      </div>
+      <div class="rpane" role="tabpanel" id="pane-units" aria-labelledby="tab-units" hidden>
+      <p class="pnote">아래 표기로 입력해도 왼쪽 표준 단위로 바꿔서 점검해요. 대소문자는 구분하지 않아요. 표준 단위로 바뀌지 않으면 STRUCT-03 오류예요.</p>
+      <table class="syntab">
+        <thead><tr><th style="width:18%">표준 단위</th><th>같은 것으로 보는 입력</th></tr></thead>
+        <tbody>
+          <tr><td>mg</td><td><span class="syn">㎎</span><span class="syn">milligram</span><span class="syn">milligrams</span><span class="syn">밀리그램</span></td></tr>
+          <tr><td>mcg</td><td><span class="syn">μg</span><span class="syn">µg</span><span class="syn">ug</span><span class="syn">㎍</span><span class="syn">microgram</span><span class="syn">micrograms</span><span class="syn">마이크로그램</span></td></tr>
+          <tr><td>g</td><td><span class="syn">gram</span><span class="syn">grams</span><span class="syn">그램</span></td></tr>
+          <tr><td>ml</td><td><span class="syn">cc</span><span class="syn">㎖</span><span class="syn">milliliter(s)</span><span class="syn">millilitre(s)</span><span class="syn">밀리리터</span></td></tr>
+          <tr><td>l</td><td><span class="syn">L</span><span class="syn">liter(s)</span><span class="syn">litre(s)</span><span class="syn">리터</span></td></tr>
+          <tr><td>IU</td><td><span class="syn">iu</span><span class="syn">unit</span><span class="syn">units</span><span class="syn">u</span><span class="syn">international unit(s)</span><span class="syn">국제단위</span><span class="syn">단위</span></td></tr>
+          <tr><td>meq</td><td><span class="syn">mEq</span></td></tr>
+          <tr><td>mmol</td><td><span class="none">—</span></td></tr>
+          <tr><td>tab</td><td><span class="syn">tablet</span><span class="syn">tabs</span><span class="syn">t</span><span class="syn">정</span></td></tr>
+          <tr><td>cap</td><td><span class="syn">capsule</span><span class="syn">caps</span><span class="syn">캡슐</span></td></tr>
+          <tr><td>supp</td><td><span class="syn">supp.</span><span class="syn">suppository</span><span class="syn">suppositories</span><span class="syn">좌약</span><span class="syn">좌제</span></td></tr>
+          <tr><td>amp</td><td><span class="syn">ampule</span><span class="syn">ampoule</span><span class="syn">ample</span><span class="syn">앰플</span></td></tr>
+          <tr><td>vial</td><td><span class="none">—</span></td></tr>
+          <tr><td>syringe</td><td><span class="syn">syr</span><span class="syn">syrn</span></td></tr>
+          <tr><td>bag</td><td><span class="none">—</span></td></tr>
+          <tr><td>bottle</td><td><span class="syn">btl</span></td></tr>
+          <tr><td>pack</td><td><span class="syn">pk</span><span class="syn">pkg</span><span class="syn">포</span></td></tr>
+          <tr><td>box</td><td><span class="none">—</span></td></tr>
+          <tr><td>kit</td><td><span class="none">—</span></td></tr>
+          <tr><td>ea</td><td><span class="none">—</span></td></tr>
+          <tr><td>patch</td><td><span class="none">—</span></td></tr>
+          <tr><td>drop</td><td><span class="syn">drops</span><span class="syn">gtt</span></td></tr>
+          <tr><td>FTU</td><td><span class="syn">fingertip</span><span class="syn">finger tip</span><span class="syn">fingertip unit</span><span class="syn">finger tip unit</span><span class="syn">fingerspoon</span></td></tr>
+          <tr><td>apply</td><td><span class="none">—</span></td></tr>
+          <tr><td>puff</td><td><span class="syn">spray</span><span class="syn">분무</span><span class="syn">나잘스프레이</span></td></tr>
+          <tr><td>dose</td><td><span class="none">—</span></td></tr>
+          <tr><td>회</td><td><span class="none">—</span></td></tr>
+          <tr><td>UK</td><td><span class="syn">uk</span><span class="syn">unk</span><span class="syn">unknown</span><span class="syn">모름</span></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="rpane" role="tabpanel" id="pane-routes" aria-labelledby="tab-routes" hidden>
+      <p class="pnote">아래 표기로 입력해도 왼쪽 표준 경로로 바꿔서 점검해요. 대소문자는 구분하지 않아요. 표준 경로로 바뀌지 않으면 STRUCT-04 오류예요.</p>
+      <table class="syntab">
+        <thead><tr><th style="width:18%">표준 경로</th><th>같은 것으로 보는 입력</th></tr></thead>
+        <tbody>
+          <tr><td>PO<small>경구</small></td><td><span class="syn">oral</span></td></tr>
+          <tr><td>IV<small>정맥</small></td><td><span class="none">—</span></td></tr>
+          <tr><td>IM<small>근육</small></td><td><span class="none">—</span></td></tr>
+          <tr><td>SC<small>피하</small></td><td><span class="syn">subcutaneous</span></td></tr>
+          <tr><td>INTRADERMAL<small>피내</small></td><td><span class="none">—</span></td></tr>
+          <tr><td>INHALATION<small>흡입</small></td><td><span class="syn">inhal</span><span class="syn">inh</span></td></tr>
+          <tr><td>NASAL<small>코</small></td><td><span class="syn">코세척</span></td></tr>
+          <tr><td>OPHTHALMIC<small>눈</small></td><td><span class="syn">eye</span><span class="syn">eye drop</span><span class="syn">ophthalmic</span><span class="syn">opthalmic</span><span class="syn">oph</span><span class="syn">OU</span><span class="syn">OD</span><span class="syn">OS</span><span class="syn">점안</span></td></tr>
+          <tr><td>OTIC<small>귀</small></td><td><span class="syn">ear</span></td></tr>
+          <tr><td>TOPICAL<small>외용</small></td><td><span class="syn">derma</span><span class="syn">dermal</span><span class="syn">epidermal</span><span class="syn">cutaneous</span><span class="syn">skin</span><span class="syn">ext</span><span class="syn">외용</span><span class="syn">국소</span><span class="syn">피부에 도포</span><span class="syn">피부</span></td></tr>
+          <tr><td>TRANSDERMAL<small>경피</small></td><td><span class="syn">TD</span><span class="syn">피부 부착</span><span class="syn">피부부착</span></td></tr>
+          <tr><td>SUBLINGUAL<small>설하</small></td><td><span class="syn">SL</span><span class="syn">설하</span></td></tr>
+          <tr><td>GARGLE<small>가글</small></td><td><span class="syn">가글</span><span class="syn">구강</span></td></tr>
+          <tr><td>RECTAL<small>직장</small></td><td><span class="syn">PR</span><span class="syn">anus</span><span class="syn">항문</span><span class="syn">직장</span></td></tr>
+          <tr><td>VAGINAL<small>질</small></td><td><span class="syn">PV</span><span class="syn">질내</span><span class="syn">질</span></td></tr>
+          <tr><td>INTRA-ARTICULAR<small>관절강내</small></td><td><span class="syn">IA</span><span class="syn">관절강내</span></td></tr>
+          <tr><td>INTRAVITREAL<small>유리체내</small></td><td><span class="syn">IVT</span></td></tr>
+          <tr><td>INTRAVESICAL<small>방광내</small></td><td><span class="syn">방광내주입</span></td></tr>
+        </tbody>
+      </table>
+      </div>
     </details>
   </section>
 
@@ -448,5 +531,25 @@
   <span>문의 김지후</span>
   <span>2026-11-23 버전</span>
 </div></footer>
+<script>
+// 룰 전체 보기: 탭 전환 (룰 / 허용 단위 / 표준 경로)
+(function(){
+  var tabs=[].slice.call(document.querySelectorAll('.rtabs [role="tab"]'));
+  function show(t, focus){
+    tabs.forEach(function(x){ var on=x===t; x.setAttribute('aria-selected',on); x.tabIndex=on?0:-1; document.getElementById(x.getAttribute('aria-controls')).hidden=!on; });
+    if(focus) t.focus();
+  }
+  tabs.forEach(function(t,i){
+    t.addEventListener('click',function(){ show(t); });
+    t.addEventListener('keydown',function(e){
+      var n = e.key==='ArrowRight' ? i+1 : e.key==='ArrowLeft' ? i-1 : null;
+      if(n===null) return; e.preventDefault(); show(tabs[(n+tabs.length)%tabs.length], true);
+    });
+  });
+  [].forEach.call(document.querySelectorAll('[data-goto]'),function(a){
+    a.addEventListener('click',function(e){ e.preventDefault(); var t=document.getElementById('tab-'+a.getAttribute('data-goto')); show(t,true); document.getElementById('allrules').scrollIntoView({behavior:'smooth',block:'start'}); });
+  });
+})();
+</script>
 </body>
 </html>
